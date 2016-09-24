@@ -1,8 +1,6 @@
 #custom
 *.pdf
 *.txt
-*.ttf
-*.svg
 
 # Windows image file caches
 Thumbs.db
