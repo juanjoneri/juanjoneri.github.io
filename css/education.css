@@ -1,0 +1,26 @@
+.education-section{
+    padding: 30px;
+}
+
+.p-main{
+    font-size: 1.5em;
+}
+
+.thumbnail{
+    background-color: #FAFAFA;
+}
+ul.ul-main li{
+    font-size: 1.4em;
+}
+div.caption p{
+    font-size: 1.2em;
+}
+
+#btn-grey{
+    background-color: #eee;
+    border-color: #aaa;
+}
+
+#btn-grey:hover{
+    background-color: #ccc;
+}

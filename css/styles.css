@@ -1,0 +1,119 @@
+/*Font*************************************************************************/
+@font-face {
+    font-family: montserrat;
+    src: url(../fonts/Montserrat-Regular.ttf);
+}
+@font-face {
+    font-family: montserrat-light;
+    src: url(../fonts/Montserrat-Light.otf);
+}
+@font-face {
+    font-family: montserrat-bold;
+    src: url(../fonts/Montserrat-Bold.otf);
+}
+body {
+    font-family: montserrat, sans-serif;
+}
+/*Font*************************************************************************/
+
+/*Navegation*******************************************************************/
+.navbar {
+    margin-bottom: 0;
+    border-radius: 0;
+}
+.navbar-default {
+    background-color: #009688;
+    border: none;
+}
+/*Brand*/
+.navbar-default .navbar-brand{
+    color: white;
+}
+/*Brand*/
+/*Toggle*/
+.navbar-default .navbar-toggle .icon-bar{
+    background-color: #004D40;
+}
+.navbar-default .navbar-toggle{
+    border-color: #E0F2F1;
+    border-color: #004D40;
+}
+.navbar-default .navbar-toggle:hover{
+    background-color: #E0F2F1;
+}
+.navbar-default .navbar-toggle:focus{
+    background-color: #E0F2F1;
+}
+/*Toggle*/
+/*Item*/
+.navbar-default .navbar-nav li a{
+    color: #E0F2F1;
+}
+
+.navbar-default .navbar-nav li a:hover {
+    color: #004D40;
+}
+/*Item*/
+/*Active*/
+.navbar-default .navbar-nav>.active>a{
+    background: #004D40;
+    color: #E0F2F1;
+}
+
+.navbar-default .navbar-nav>.active>a:hover{
+    background: #004D40;
+    color: #E0F2F1;
+}
+/*Active*/
+/*Navegation*******************************************************************/
+
+/*Center image in column*/
+.project-image {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+ }
+ /*Center image in column*/
+
+/*Footer**********************************************************************/
+body {
+    padding-bottom: 40px;
+    color: #5a5a5a;
+}
+
+footer a{
+    /*get rid of the default color of the icons*/
+    color: inherit;
+}
+/*Footer*********************************************************************/
+
+/*Floating action button*/
+.fav {
+    box-shadow: 0.2em 0.2em 0.2em rgba(0, 0, 0, .5);
+    width: 3em;
+    height: 3em;
+    border-radius: 100%;
+    position: fixed;
+    align-items: center;
+    display: flex;
+    justify-content: center;
+    bottom: 1em;
+    right: 1em;
+}
+
+.fav:hover{
+    box-shadow: 0.3em 0.3em 0.3em rgba(0, 0, 0, .5);
+    width: 3.1em;
+    height: 3.1em;
+}
+/*Floating action button*/
+
+.img-center{
+    margin: 0 auto;
+    position: absolute;
+    top: 0;
+    left: 0;
+    min-width: 100%;
+    height: 500px;
+}
+/*favourites*******************************************************************/

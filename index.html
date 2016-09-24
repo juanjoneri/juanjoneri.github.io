@@ -1,9 +1,167 @@
-<!DOCTYPE html>
-<html>
+<!DOCTYPE HTML>
+
+<html lang="en"?>
+
+    <head>
+
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+        <link rel="stylesheet" href="css/bootstrap.min.css"><!--bootstrap defaults-->
+        <link rel="stylesheet" href="css/styles.css"><!--site general settings-->
+        <link rel="stylesheet" href="css/index.css"><!--particular css-->
+
+        <title>JuanJo</title>
+
+    </head>
+
 <body>
 
-<h1>My First Heading</h1>
-<p>My first paragraph.</p>
+    <!--navegacion start------------------------------------------------------------->
+<nav class="navbar navbar-default">
+    <div class="container">
+        <div class="navbar-header">
+            <button class="navbar-toggle collapsed" data-toggle="collapse" data-target="#collapsemenu" aria-expanded="false">
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="index.html" role="button">JuanJo</a>
+        </div>
+
+        <div class="collapse navbar-collapse" id="collapsemenu">
+            <ul class="nav navbar-nav">
+                <li><a href="education.html">Education</a></li>
+                <li><a href="experience.html">Experience</a></li>
+                <li><a href="favourites.html">Favourites</a></li>
+                <li><a href="projects.html">Projects</a></li>
+            </ul>
+        </div>
+    </div>
+</nav>
+    <!--navegacion end------------------------------------------------------------->
+
+    <!--content start---------------------------------------------------------------->
+<div class="container index">
+
+    <div class="page-header"><!--Page header-->
+        <h1 id="timeline">Juan José Neri</h1>
+    </div>
+
+  <!-- Bubbles start ---------->
+  <div class="row circles">
+
+    <a href="files/resume.pdf">
+    <div class="col-sm-4" id="book" href="files/resume.pdf"><!--bubble 1-->
+        <img class="img-circle" width="140" height="140">
+        <h3>Resume</h3>
+        <p>Start with my resume.</p>
+    </div>
+    </a>
+
+    <a href="files/cerificates.zip">
+    <div class="col-sm-4" id="cap"><!--bubble 2-->
+        <img class="img-circle" width="140" height="140">
+        <h3>Certificates</h3>
+        <p>Download a list of my achievements . </p>
+    </div>
+    </a>
+
+    <a href="projects.html">
+    <div class="col-sm-4" id="gear"><!--bubble 3-->
+        <img class="img-circle" width="140" height="140">
+        <h3>Projects</h3>
+        <p>Check out some of my projects.</p>
+    </div>
+    </a>
+
+</div><!-- Bubbles end ---------->
+
+    <hr class="featurette-divider"><!--horizontal divider-->
+
+    <!-- Featurette start ------>
+    <div class="row featurette"><!--featurette 1-->
+        <div class="col-md-7">
+            <h2 class="featurette-heading">About <span class="text-muted">Me. </span></h2>
+            <p class="lead">Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+            <p><a class="btn btn-primary" href="favourites.html" role="button">Favourites</a></p>
+            <p><br></p>
+        </div>
+        <div class="col-md-5">
+            <img class="img-responsive center-block" src="img/myFace2.png">
+        </div>
+    </div>
+
+      <hr class="featurette-divider"><!--horizontal divider-->
+
+    <div class="row featurette"><!--featurette 2-->
+        <div class="col-md-7 col-md-push-5">
+            <h2 class="featurette-heading">Education and <span class="text-muted">Experience. </span></h2>
+            <p class="lead">Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.</p>
+            <p><a class="btn btn-primary" href="experience.html" role="button">Experience</a></p>
+            <p><br></p>
+        </div>
+        <div class="col-md-5 col-md-pull-7">
+            <img class="img-responsive center-block" src="img/educationCaltech.jpg">
+        </div>
+    </div>
+
+    <hr class="featurette-divider"><!--horizontal divider-->
+
+    <div class="row featurette"><!--featurette 3-->
+        <div class="col-md-7">
+            <h2 class="featurette-heading">About this <span class="text-muted">Site. </span></h2>
+            <p class="lead">The development of this website was a personal project to test the capabilities of the bootstrap framework in a real world application.</p>
+            <p class="lead">Learn more about this and other personal projects following the link below, feel free to reuse my code for your project</p>
+            <p><a class="btn btn-primary" href="projects.html" role="button">Projects</a></p>
+            <p><br></p>
+        </div>
+        <div class="col-md-5">
+            <img class=" img-responsive center-block" src="img/screen.png">
+        </div>
+    </div>
+    <!-- Featurette end ------>
+
+    <hr class="featurette-divider">
+
+  <!--footer start------------------------------------------------------------->
+    <footer>
+        <p class="pull-right"><a href="#">Back to top</a></p>
+        <p>&copy; 2016 JuanJo, Inc.&ensp;
+            <a href="#" role="button" class="fa fa-facebook-square fa-lg" aria-hidden="true"></a>&ensp;
+            <a href="#" role="button" class="fa fa-github-square fa-lg" aria-hidden="true"></a>&ensp;
+            <a href="#" role="button" class="fa fa-linkedin-square fa-lg" aria-hidden="true"></a>&ensp;
+            <a data-target="#displayMail" data-toggle="modal" role="button" class="fa fa-envelope-square fa-lg" aria-hidden="true"></a>&ensp;
+            <a href="#" role="button" class="fa fa-youtube-square fa-lg" aria-hidden="true"></a>
+        </p>
+    </footer>
+
+    <!--modal with mail start-->
+    <div class="modal" id="displayMail">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">
+                        <span>&times;</span>
+                    </button>
+                    <h3 class="modal-title">Personal email</h3>
+                </div>
+                <div class="modal-body">
+                    <p>juanjo.neri@gmail.com</p>
+                </div>
+            </div>
+        </div>
+    </div><!--modal with mail end-->
+
+  <!--footer end------------------------------------------------------------->
+
+</div><!--content end---------------------------------------------------------------->
+
+    <script src="js/jquery-2.2.4.min.js"></script><!-- jquery for bootstrap ---->
+    <script src="js/bootstrap.min.js"></script><!-- bootstrap js ------>
+    <script src="https://use.fontawesome.com/e1e7cc80ed.js"></script><!--icons font awezome-->
+    <script src="js/script.js"></script><!-- custom script ------>
 
 </body>
 </html>

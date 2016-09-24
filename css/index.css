@@ -1,0 +1,66 @@
+/*index top images*/
+.circles a, .circles a:hover, .circles a:visited, .circles a:active {
+    color:inherit;
+    text-decoration: none;
+}
+
+div#cap img{
+    content: url('../img/cap.png');
+}
+div#cap:hover img{
+    content: url('../img/capActive.png');
+}
+
+div#book img{
+    content: url('../img/book.png');
+}
+div#book:hover img{
+    content: url('../img/bookActive.png');
+}
+
+div#gear img{
+    content: url('../img/gear.png');
+}
+div#gear:hover img{
+    content: url('../img/gearActive.png');
+}
+
+
+/* Center align the text within the three columns below the carousel */
+.index .col-sm-4 {
+    margin-top: 40px;
+    text-align: center;
+}
+.index h2 {
+    font-weight: normal;
+}
+.index .col-sm-4-4 p {
+    margin-right: 10px;
+    margin-left: 10px;
+}
+
+/* Thin out the index headings */
+.featurette-heading {
+    font-weight: 300;
+    line-height: 1;
+    letter-spacing: -1px;
+}
+
+.featurette-divider {
+  margin: 60px 0; /* Space out the Bootstrap <hr> more */
+}
+
+
+/* Responsive CSS */
+
+@media (min-width: 768px) {
+    .featurette-heading {
+        font-size: 50px;
+    }
+}
+
+@media (min-width: 992px) {
+    .featurette-heading {
+        margin-top: 60px;
+    }
+}

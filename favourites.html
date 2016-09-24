@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <title>JuanJo</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.3/css/bootstrap.min.css" integrity="sha384-MIwDKRSSImVFAZCVLtU0LMDdON6KVCrZHyVQQj6e8wIEJkW4tvwqXrbMIya1vriY" crossorigin="anonymous"><!--bootstrap 4 css-->
+    <link rel="stylesheet" href="css/styles.css"><!-- custom css -->
+
+</head>
+
+<body>
+
+    <!--alert alpha start-->
+    <div class="alert alert-info" role="alert">
+        <strong>Heads up!</strong> This section of the site was built using the alpha release of <strong>Bootstrap 4</strong> so it might misbehave, click <a href="index.html" class="alert-link">here</a> to go back.
+    </div><!--alert alpha end-->
+
+    <!--content start---------------------------------------------------------------->
+    <div class="container favourites">
+      <div class="row">
+
+        <section class="col-xs-12"><!--Page header-->
+            <div class="header">
+              <h1>Favourites <span class="tag tag-default">New</span></h1>
+              <hr>
+            </div>
+        </section>
+
+    <!--cards start------------------------------------>
+    <section class="col-sm-12">
+
+    <!--card deck start--------------->
+    <div class="card-columns">
+
+    <!--card normal warning start-->
+    <div class="card card-inverse card-warning text-xs-center">
+        <div class="card-block">
+            <blockquote class="card-blockquote">
+              <p>When you reason correctly, you find that you always think you’re right, but you don’t think you’re always right.</p>
+              <footer>Jordan Ellemberg<cite title="Source Title"><br>How not to be wrong</cite></footer>
+            </blockquote>
+        </div>
+    </div><!--card normal warning end-->
+
+
+    <!-- card normal start-->
+    <div class="card">
+        <div class="embed-responsive embed-responsive-16by9">
+            <iframe class="embed-responsive-item" src="https://www.youtube.com/embed/ZWib5olGbQ0?autoplay=0"></iframe>
+        </div>
+        <div class="card-block">
+          <h4 class="card-title">Math Proof</h4>
+          <p class="card-text">How to most effectively choose between several alternatives.</p>
+          <a href="#" class="btn btn-outline-primary" role="button" data-toggle="tooltip" data-placement="right" title="Download proof in .nb for Mathematica">
+          <span class="fa fa-file-o" aria-hidden="true"></span>
+          </a>
+        </div>
+    </div><!-- card normal -->
+
+    <!--card normal inverted start-->
+    <div class="card card-inverse" style="background-color: #333; border-color: #333;">
+        <div class="card-block">
+          <h3 class="card-title">Online course</h3>
+          <p class="card-text"><strong>Udemy</strong>, Become an Android Developer from Scratch by <cite>Adam Schwem</cite></p>
+          <a href="https://www.udemy.com/become-an-android-developer-from-scratch/" class="btn btn-primary">Visit</a>
+        </div>
+    </div><!--card normal inverted end-->
+
+    <!-- card with list start-->
+    <div class="card">
+        <img class="img-fluid card-img-top" src="img/tensorFlow.jpg">
+        <div class="card-block">
+          <h4 class="card-title">Website</h4>
+          <p class="card-text">Google's Tensor Flow Playground for Neural Networks.</p>
+        <!--
+        <ul class="list-group list-group-flush">
+          <li class="list-group-item">Cras justo odio</li>
+          <li class="list-group-item">Dapibus ac facilisis in</li>
+          <li class="list-group-item">Vestibulum at eros</li>
+      </ul>-->
+          <a href="http://playground.tensorflow.org/#activation=tanh&batchSize=10&dataset=circle&regDataset=reg-plane&learningRate=0.03&regularizationRate=0&noise=0&networkShape=4,2&seed=0.31074&showTestData=false&discretize=false&percTrainData=50&x=true&y=true&xTimesY=false&xSquared=false&ySquared=false&cosX=false&sinX=false&cosY=false&sinY=false&collectStats=false&problem=classification&initZero=false" class="card-link">Visit</a>
+          <a href="https://www.youtube.com/watch?v=cKxRvEZd3Mw&list=PLT6elRN3Aer7ncFlaCz8Zz-4B5cnsrOMt" class="card-link">Learn more</a>
+        </div>
+    </div><!-- card with list end -->
+
+    <!-- card subptitle and image center start-->
+    <div class="card">
+        <div class="card-block">
+          <h4 class="card-title">Book</h4>
+          <h6 class="card-subtitle text-muted">Surely you're joking, Mr. Feynman!</h6>
+        </div>
+        <img class="img-fluid card-img-top" src="img/mrFeynman.jpeg">
+        <div class="card-block">
+          <a href="https://www.amazon.com/Surely-Feynman-Adventures-Curious-Character/dp/0393316041/ref=sr_1_1?s=books&ie=UTF8&qid=1468609834&sr=1-1&keywords=surely+you%27re+joking+mr.+feynman" class="btn btn-outline-warning">Amazon</a>
+        </div>
+    </div><!-- card subptitle and image center end-->
+
+    <!-- card with header and footer start-->
+    <div class="card text-xs-center">
+        <div class="card-header">
+          Piece of News
+        </div>
+        <div class="card-block">
+          <h4 class="card-title">The Verge</h4>
+          <p class="card-text">Microsoft is adding the Linux command line to Windows 10.</p>
+          <a href="http://www.theverge.com/2016/3/30/11331014/microsoft-windows-linux-ubuntu-bash" class="btn btn-primary">Read more</a>
+        </div>
+        <div class="card-footer text-muted">
+          March 30
+        </div>
+    </div><!-- card with header and footer end-->
+
+    <!-- card w/o start -->
+    <div class="card card-outline-danger text-xs-center">
+    <div class="card-block">
+        <h4 class="card-title">Font</h4>
+        Montserrat<p class="card-text" style="font-family: montserrat-light;">Open source Sans created by argentinian Julieta Ulanovsky.</p>
+        <a href="https://www.fontsquirrel.com/fonts/montserrat" class="btn btn-outline-danger">Download</a>
+    </div></div><!-- card w/o image end-->
+
+    <!-- card with image overlayed by texg start-->
+    <div class="card card-inverse text-xs-center">
+        <img class="img-fluid card-img" src="img/Aicc.svg">
+    </div><!-- card with image overlayed by texg end -->
+   <!-- card img list start-->
+   <div class="card">
+      <div class="card-block">
+        <h4 class="card-title">Favourite Apps</h4>
+        <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
+      </div>
+      <ul class="list-group list-group-flush">
+        <li role="button" class="list-group-item">iA writter</li>
+        <li role="button" class="list-group-item">Wolfram Alpha</li>
+        <li role="button" class="list-group-item">Dropbox</li>
+      </ul>
+  </div><!-- card img list end-->
+
+    </div><!-- card deck end -------->
+
+    <!--card group start ---------->
+    <!--
+    <div class="card-group">
+        <div class="card">
+            <img class="img-fluid card-img-top" src="img/500_500.png">
+            <div class="card-block">
+              <h4 class="card-title">Card title</h4>
+              <p class="card-text">This is a wider card with supporting text below as a natural lead-in to additional content. This content is a little bit longer.</p>
+              <p class="card-text"><small class="text-muted">Last updated 3 mins ago</small></p>
+            </div>
+        </div>
+
+        <div class="card">
+            <img class="img-fluid card-img-top" src="img/500_500.png">
+            <div class="card-block">
+              <h4 class="card-title">Card title</h4>
+              <p class="card-text">This card has supporting text below as a natural lead-in to additional content.</p>
+              <p class="card-text"><small class="text-muted">Last updated 3 mins ago</small></p>
+            </div>
+        </div>
+
+        <div class="card">
+            <img class="img-fluid card-img-top" src="img/500_500.png">
+            <div class="card-block">
+              <h4 class="card-title">Card title</h4>
+              <p class="card-text">This is a wider card with supporting text below as a natural lead-in to additional content. This card has even longer content than the first to show that equal height action.</p>
+              <p class="card-text"><small class="text-muted">Last updated 3 mins ago</small></p>
+            </div>
+        </div>
+    </div><!-- card group end -------->
+
+        </section><!--cards end------------------------------------>
+      </div>
+
+    <!--footer start------------------------------------------------------------->
+    <hr>
+    <footer>
+        <p class="pull-right"><a href="#">Back to top</a></p>
+        <p>&copy; 2016 JuanJo, Inc.&ensp;
+            <a href="#" role="button" class="fa fa-facebook-square fa-lg" aria-hidden="true"></a>&ensp;
+            <a href="#" role="button" class="fa fa-github-square fa-lg" aria-hidden="true"></a>&ensp;
+            <a href="#" role="button" class="fa fa-linkedin-square fa-lg" aria-hidden="true"></a>&ensp;
+            <a href="#" role="button" class="fa fa-youtube-square fa-lg" aria-hidden="true"></a>
+        </p>
+    </footer>
+    <!--footer end------------------------------------------------------------->
+
+
+    </div><!--content end---------------------------------------------------------------->
+
+    <!--fav start----->
+    <a class="btn btn-lg btn-primary fav" href="index.html" role="button">
+        <i class="fa fa-home fa-lg" aria-hidden="true"></i>
+    </a><!--fav end-->
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script><!--bots4 jq-->
+    <script src="js/tether.min.js"></script><!-- custom script ------>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.2/js/bootstrap.min.js" integrity="sha384-vZ2WRJMwsjRMW/8U7i6PWi6AlO1L79snBrmgiDpgIWJ82z8eA5lenwvxbMV1PAh7" crossorigin="anonymous"></script><!--bots4 js-->
+    <script src="https://use.fontawesome.com/e1e7cc80ed.js"></script><!--icon awezome-->
+    <script src="js/script.js"></script><!-- custom script ------>
+
+  </body>
+</html>
