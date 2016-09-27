@@ -34,7 +34,7 @@ div#gear:hover img{
 .index h2 {
     font-weight: normal;
 }
-.index .col-sm-4-4 p {
+.index .col-sm-4 p {
     margin-right: 10px;
     margin-left: 10px;
 }
@@ -52,13 +52,39 @@ div#gear:hover img{
 
 
 /* Responsive CSS */
+/*xs*/
+@media (max-width: 768px) {
+    .img-circle {
+        width: 90px;
+        height: 90px;
+    }
 
+    #book p{
+        font-size: 75%;
+    }
+    #book h3{
+        font-size: 120%;
+    }
+    #cap p{
+        font-size: 75%;
+    }
+    #cap h3{
+        font-size: 120%;
+    }
+    #gear p{
+        font-size: 75%;
+    }
+    #gear h3{
+        font-size: 120%;
+    }
+}
+/*sm*/
 @media (min-width: 768px) {
     .featurette-heading {
         font-size: 50px;
     }
 }
-
+/*md*/
 @media (min-width: 992px) {
     .featurette-heading {
         margin-top: 60px;
