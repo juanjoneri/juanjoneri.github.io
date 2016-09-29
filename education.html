@@ -215,9 +215,18 @@
 
     <section class="col-md-6 col-md-push-6">
         <h2>
-            <a href="#" class="btn btn-lg btn-default" role="button" data-toggle="tooltip" title="Download all Certificates">
-                <span class="fa fa-file-archive-o" aria-hidden="true"></span>
-            </a>
+            <!-- Single button -->
+            <div class="btn-group">
+              <button type="button" class="btn btn-lg btn-default"><span class="fa fa-file-archive-o" aria-hidden="true"></span></button>
+              <button type="button" class="btn btn-lg btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                <span class="caret"></span>
+                <span class="sr-only">Toggle Dropdown</span>
+              </button>
+              <ul class="dropdown-menu">
+                <li><a href="#">See list</a></li>
+                <li><a href="#">Download All</a></li>
+              </ul>
+            </div>
             Web Certificates.
         </h2>
         <p class="p-main">With the help of the free online courses offered by the websites below I developed many skills, ranging from Android App development to Vector Illustration.</p>
