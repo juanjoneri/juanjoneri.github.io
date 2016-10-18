@@ -33,7 +33,11 @@
 .featurette-divider {
   margin: 60px 0; /* Space out the Bootstrap <hr> more */
 }
-
+.featurette-img {
+    border-style: solid;
+    border-width: thin;
+    border-color: black;
+}
 
 /* Responsive CSS */
 /*xs*/
