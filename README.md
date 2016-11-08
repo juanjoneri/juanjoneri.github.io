@@ -8,5 +8,5 @@
 * Practice Adobe Photoshop, Illustrator and After Effects
 * Originally hosted using Apache Cordova on the Raspberry Pi 3, currently github Pages
 
-Please feel free to use any of the code in this project.
-### Note: _The website is now [online](juanjoneri.github.io) via github pages
+*Please feel free to use any of the code in this project.*
+### Note: The website is now [online](juanjoneri.github.io) via github pages
