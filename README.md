@@ -9,4 +9,4 @@
 * Originally hosted using Apache Cordova on the Raspberry Pi 3, currently github Pages
 
 *Please feel free to use any of the code in this project.*
-### Note: The website is now [online](juanjoneri.github.io) via github pages
+### Note: The website is now [online](http://www.juanjoneri.github.io) via github pages
