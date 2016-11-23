@@ -10,3 +10,6 @@
 
 *Please feel free to use any of the code in this project.*
 ### Note: The website is now [online](http://www.juanjoneri.me) via github pages
+
+### A picture of the UI
+<img src="http://juanjoneri.me/img/sitegif.gif"/>
