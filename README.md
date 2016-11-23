@@ -12,4 +12,4 @@
 ### Note: The website is now [online](http://www.juanjoneri.me) via github pages
 
 ### A picture of the UI
-<img src="http://juanjoneri.me/img/sitegif.gif" width="300" />
+<img src="http://juanjoneri.me/img/screen.png" width="300" />
