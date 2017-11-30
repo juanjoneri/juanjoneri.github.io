@@ -1,0 +1,115 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8"/>
+    <title>All together</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <h1>All together</h1>
+    <h3>Click the canvas to make the animation come alive</h3>
+
+    <hr><h2>Rotation</h2>
+    <canvas id="canvas11" width="256" height="256">
+      Sorry, your web browser does not appear to support
+      the <code>canvas</code> element, either.
+    </canvas>
+    <canvas id="canvas12" width="256" height="256">
+      Sorry, your web browser does not appear to support
+      the <code>canvas</code> element, either.
+    </canvas>
+    <canvas id="canvas13" width="256" height="256">
+      Sorry, your web browser does not appear to support
+      the <code>canvas</code> element, either.
+    </canvas>
+
+    <hr><h2>Scaling</h2>
+    <canvas id="canvas21" width="256" height="256">
+      Sorry, your web browser does not appear to support
+      the <code>canvas</code> element, either.
+    </canvas>
+    <canvas id="canvas22" width="256" height="256">
+      Sorry, your web browser does not appear to support
+      the <code>canvas</code> element, either.
+    </canvas>
+    <canvas id="canvas23" width="256" height="256">
+      Sorry, your web browser does not appear to support
+      the <code>canvas</code> element, either.
+    </canvas>
+
+    <hr><h2>Translation</h2>
+    <canvas id="canvas31" width="256" height="256">
+      Sorry, your web browser does not appear to support
+      the <code>canvas</code> element, either.
+    </canvas>
+    <canvas id="canvas32" width="256" height="256">
+      Sorry, your web browser does not appear to support
+      the <code>canvas</code> element, either.
+    </canvas>
+    <canvas id="canvas33" width="256" height="256">
+      Sorry, your web browser does not appear to support
+      the <code>canvas</code> element, either.
+    </canvas>
+
+    <hr><h2>Grouping</h2>
+    <canvas id="canvas4" width="512" height="512">
+      Sorry, your web browser does not appear to support
+      the <code>canvas</code> element, either.
+    </canvas>
+
+    <!-- jQuery makes some things more convenient. -->
+    <script src="http://code.jquery.com/jquery-latest.min.js"></script>
+
+    <!-- GLSLUtilities is a starting point for holding functionality that
+         is common to many WebGL programs. -->
+    <script src="glsl-utilities.js"></script>
+
+    <!-- Shapes is a library that generates "canned" shapes. -->
+    <script src="matrix.js"></script>
+    <script src="polygon.js"></script>
+
+
+    <!-- Set up shaders: we've placed the source in script elements for
+        simplicity.  Shaders are ideally kept in separate files for easier
+        maintenance, but in that situation, additional code and security
+        constraints are involved. -->
+
+    <!-- The vertex shader is a complete pass-through. -->
+    <script id="vertex-shader" type="x-shader/x-vertex">
+      #ifdef GL_ES
+      precision highp float;
+      #endif
+
+      attribute vec3 vertexPosition;
+
+      // Note this new additional output.
+      attribute vec3 vertexColor;
+      varying vec4 finalVertexColor;
+      uniform mat4 transformationMatrix;
+
+      void main(void) {
+          gl_Position = vec4(vertexPosition, 1.0) * transformationMatrix;
+          finalVertexColor = vec4(vertexColor, 1.0);
+      }
+    </script>
+
+    <!-- The fragment shader produces a single unconditional color. -->
+    <script id="fragment-shader" type="x-shader/x-fragment">
+      #ifdef GL_ES
+      precision highp float;
+      #endif
+
+      varying vec4 finalVertexColor;
+
+      void main(void) {
+          // We vary the color based on the fragment's z coordinate,
+          // which, at this point, ranges from 0 (near) to 1 (far).
+          // Note the ".rgb" subselector.
+          gl_FragColor = vec4((1.0 - gl_FragCoord.z) * finalVertexColor.rgb, 1.0);
+      }
+    </script>
+
+    <!-- This script sets up the specific scene for this page. -->
+    <script src="scene-drawing-pro.js"></script>
+  </body>
+</html>

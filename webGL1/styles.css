@@ -1,0 +1,22 @@
+body {
+    font: normal 1.5em sans-serif;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    margin-left: 18px;
+}
+
+canvas {
+    margin: 24px;
+    padding: 12px;
+    border: dashed 2px black;
+    display:inline;
+}
+
+h2 {
+    display: block;
+}
+
+hr {
+    display: block;
+}
