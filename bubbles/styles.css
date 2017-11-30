@@ -1,0 +1,33 @@
+#drawing-area {
+    background-color: #4FC3F7;
+    border: 1px solid #0D47A1;
+    position: fixed;
+    top: 10px;
+    left: 10px;
+    bottom: 10px;
+    right: 10px;
+}
+
+.drawing-area {
+    position: relative;
+    user-select: none;
+}
+
+.bubble {
+    -webkit-border-radius: 50%;
+    -moz-border-radius: 50%;
+    border-radius: 50%;
+
+    -webkit-box-shadow: 0 20px 30px rgba(0, 0, 0, 0.2), inset 0px 10px 30px 5px rgba(255, 255, 255, 1);
+    -moz-box-shadow: 0 20px 30px rgba(0, 0, 0, 0.2), inset 0px 10px 30px 5px rgba(255, 255, 255, 1);
+    box-shadow: 0 20px 30px rgba(0, 0, 0, 0.2), inset 0px 10px 30px 5px rgba(255, 255, 255, 1);
+
+    height: 50px;
+    position: absolute;
+    width: 50px;
+}
+
+.bubble-highlight {
+    background-color: #E3F2FD80;
+    box-shadow: 0px 0px 12px #BBDEFB50,-5px -5px 10px #2196F351 inset;;
+}
