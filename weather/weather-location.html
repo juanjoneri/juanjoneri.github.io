@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+    <link rel="stylesheet" href="weather-location.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/css/bootstrap.min.css" integrity="sha384-/Y6pD6FV/Vv2HJnA6t+vslU6fwYXjCFtcEpHbNJ0lyAFsXTsjBbfaDjzALeQsN6M" crossorigin="anonymous">
+
+</head>
+
+<body>
+    <div class="container">
+        <div class="row mt-2">
+            <h1>Choose a location to see the weather</h1>
+        </div>
+        <br>
+        <div id="map"></div>
+        <br>
+        <section>
+            <div class="container">
+                <div class="card">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <img class="card-img-bottom" src="icons/clear-day.svg" id="image">
+                        </div>
+                        <div class="col-md-9">
+                            <div class="card-body">
+                                <h4 class="card-title" id="title">Desired Location.</h4>
+                                <p class="card-text" id="summary">Summary of the weather</p>
+                                <p class="card-text text-muted" id="temperature">88°F</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.11.0/umd/popper.min.js"></script>
+
+    <script src="weather-location.js"></script>
+    <!-- <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDTtE-VtIB17Jv2poYsLUHbuEAixgKa3JM&callback=window.WeatherLocationController.init"></script> -->
+
+    <!-- Called as callback to google maps api being loaded above -->
+    <script>window.WeatherLocationController.initMap()</script>
+
+</body>
+
+</html>
