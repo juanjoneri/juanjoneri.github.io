@@ -3029,7 +3029,7 @@
 
 	#banner {
 		background-attachment: scroll,							fixed;
-		background-image: linear-gradient(rgba(0, 0, 0, 0), rgba(0, 0, 0, 1)),url("images/buenos-aires-lede.jpg"), url("../../images/banner.jpg");
+		background-image: linear-gradient(rgba(0, 0, 0, 0), rgba(68, 68, 68, 1)),url("images/buenos-aires-lede.jpg"), url("../../images/banner.jpg");
 		background-position: top left,						center center;
 		background-repeat: repeat,							no-repeat;
 		background-size: auto,							cover;
