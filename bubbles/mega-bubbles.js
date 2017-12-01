@@ -2,7 +2,7 @@
 
 
     const POP_SND = new Audio("sounds/pop.mp3");
-    const BUBBLE_SOUND = new Audio("sounds/bubbles.mp3");
+    const BUBBLE_SND = new Audio("sounds/bubbles.mp3");
 
     const INI_R = 25;
     const DEL_R = 1;
@@ -13,33 +13,23 @@
     let highlight = event => $(event.currentTarget).addClass("bubble-highlight");
     let unhighlight = event => $(event.currentTarget).removeClass("bubble-highlight");
 
-    const delT = 100; // Time between creation of bubbles
-    let lastT = new Date().getTime();
+    let inCreation = {};
 
+    let startBubble = function (event) {
+        BUBBLE_SND.play();
+        $.each(event.touches, function (index, touch) {
+            if (touch.target.movingBubble || inCreation[touch.identifier]) { return; }
+            let canvas = $(touch.target);
 
-    let addBubble = function (event) {
+            canvas.anchorX = touch.pageX - INI_R;
+            canvas.anchorY = touch.pageY - INI_R;
 
-        if (new Date().getTime() - lastT < delT) {
-            return;
-        }
-
-        for (let i = 0; i < event.touches.length; i++) {
-            let touch = event.touches[i];
-
-            if (touch.target.movingBubble) {
-                return;
-            }
-
-            BUBBLE_SOUND.play();
-
-            this.anchorX = touch.pageX - INI_R;
-            this.anchorY = touch.pageY - INI_R;
-            let position = { left: this.anchorX, top: this.anchorY };
+            let position = { left: canvas.anchorX, top: canvas.anchorY };
             let velocity = { x: 0, y: 0, z: 0 };
             let acceleration = { x: 0, y: 0, z: 0 };
 
-            $("<div></div>")
-                .appendTo(this)
+            let newBubble = $("<div></div>")
+                .appendTo(canvas)
                 .addClass("bubble")
                 .data({position, velocity, acceleration})
                 .offset(position)
@@ -49,14 +39,64 @@
                 .bind("touchend", endDrag)
                 .bind("touchend", unhighlight);
 
+            inCreation[touch.identifier] = newBubble;
             setupDragState();
-            lastT = new Date().getTime();
-        }
+        });
+    };
 
+    let inflateBubble = function (event) {
+        $.each(event.changedTouches, function (index, touch) {
+            if (touch.target.movingBubble) { return; }
+            if (inCreation[touch.identifier]) {
+                let currentBubble = inCreation[touch.identifier];
+
+                let center = currentBubble.position();
+                let centerX = center.left;
+                let centterY = center.top;
+                let fingerX = touch.pageX;
+                let fingerY = touch.pageY;
+                let delX = centerX - fingerX;
+                let delY = centterY - fingerY;
+
+
+                let r = +currentBubble.css('height').match(numbersPat);
+                r += 2 * DEL_R;
+
+                let newPosition = {
+                    left: centerX - (delX + r / 2),
+                    top: centterY - (delY + r / 2)
+                };
+
+                if (r >= MAX_R) {
+                    POP_SND.play();
+                    currentBubble.remove();
+                    touch.target.movingBubble = null;
+                    delete inCreation[touch.identifier];
+                    if (jQuery.isEmptyObject(inCreation)) {
+                        BUBBLE_SND.pause();
+                    }
+                } else {
+                    currentBubble.css('height', `${r}px`);
+                    currentBubble.css('width', `${r}px`);
+                    currentBubble.data('position', newPosition);
+                    currentBubble.offset(newPosition);
+                }
+            }
+        });
+    };
+
+    let finishBubble = function (event) {
+        $.each(event.changedTouches, function (index, touch) {
+            delete inCreation[touch.identifier];
+        });
+        if (jQuery.isEmptyObject(inCreation)) {
+            BUBBLE_SND.pause();
+        }
     };
 
     let trackDrag = event => {
         $.each(event.changedTouches, function (index, touch) {
+            if (inCreation[touch.identifier]) { return; }
             if (touch.target.movingBubble) {
 
                 touch.target.deltaX += DEL_R;
@@ -80,7 +120,6 @@
                     POP_SND.play();
                     $(touch.target).remove();
                     touch.target.movingBubble = null;
-                    lastT = new Date().getTime();
                 }
             }
         });
@@ -115,10 +154,10 @@
     };
 
     const FRICTION_FACTOR = 0.95;
-    const BOUYANT_COEFFICIENT = 0.005;
-    const FRAME_RATE = 120;
+    const FRAME_RATE = 60;
     const FRAME_DURATION = 1000 / FRAME_RATE;
     const MASS = 0.01;
+    const BUOYANT_COEFFICIENT = 0.005;
 
     let lastTimestamp = 0;
     let bubbleBubbles = timestamp => {
@@ -126,7 +165,6 @@
             lastTimestamp = timestamp;
         }
 
-        // Keep that frame rate under control.
         if (timestamp - lastTimestamp < FRAME_DURATION) {
             window.requestAnimationFrame(bubbleBubbles);
             return;
@@ -148,9 +186,13 @@
             s.left += v.x;
             s.top -= v.y;
 
-            v.x += (a.x * BOUYANT_COEFFICIENT * radius * MASS);
-            v.y += (a.y * BOUYANT_COEFFICIENT * radius * MASS);
-            v.z += (a.z * BOUYANT_COEFFICIENT * radius * MASS);
+            // The bouyant force is proportional to the radius of the bubble (not the real formula but looks right),
+            // and opposite in direction to the acceleration of gravity
+            // the MASS replicates the mass of water for the buoyancy equation
+
+            v.x -= (a.x * BUOYANT_COEFFICIENT * radius * MASS);
+            v.y -= (a.y * BUOYANT_COEFFICIENT * radius * MASS);
+            v.z -= (a.z * BUOYANT_COEFFICIENT * radius * MASS);
 
             v.x *= FRICTION_FACTOR;
             v.y *= FRICTION_FACTOR;
@@ -182,16 +224,13 @@
         window.requestAnimationFrame(bubbleBubbles);
     };
 
-    let stopSound = function () {
-        BUBBLE_SOUND.pause();
-    };
-
     let setDrawingArea = jQueryElements => {
         jQueryElements
             .addClass("drawing-area")
             .each((index, element) => {
-                element.addEventListener("touchmove", addBubble, false);
-                element.addEventListener("touchend", stopSound);
+                element.addEventListener("touchstart", startBubble);
+                element.addEventListener("touchmove", inflateBubble);
+                element.addEventListener("touchend", finishBubble);
             })
             .find("div.bubble").each((index, element) => {
                 $(element)
@@ -209,8 +248,11 @@
 
         window.ondevicemotion = event => {
             let a = event.accelerationIncludingGravity;
+            // Simulate we are on an iphone ... just to make it more complicated and 'fair'
+            // Skip if you are on an iphone
+            let g = {x: -a.x, y: -a.y, z: -a.z};
             $("div.bubble").each((index, element) => {
-                $(element).data('acceleration', a);
+                $(element).data('acceleration', g);
             });
         };
 
