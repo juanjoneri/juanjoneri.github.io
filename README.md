@@ -1,6 +1,6 @@
 # Personal Portfolio Site
 ![Icon of the app](http://juanjoneri.com/img/IconSite.png)<br>
-[**juanjoneri.me**](http://www.juanjoneri.com)
+[**juanjoneri.com**](http://www.juanjoneri.com)
 ## Purpose
 * Practice Bootstrap 3 and 4
 * Showcase my projects
