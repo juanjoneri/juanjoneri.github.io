@@ -64,6 +64,8 @@ body {
     background: #004D40;
     color: #E0F2F1;
 }
+
+.navbar-nav > li > .dropdown-menu { background-color: #009688; }
 /*Active*/
 /*Navegation*******************************************************************/
 
