@@ -1,0 +1,133 @@
+<!doctype html>
+
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>RSA Tool</title>
+
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+  <link rel="stylesheet" href="styles.css">
+
+</head>
+
+<body>
+
+    <div class="container">
+        <div class="row">
+
+            <div class="col-sm">
+                <h1>Generate public key for sender.</h1>
+                <div class="alert alert-danger" role="alert">
+                        Choose two prime numbers, but do not share them!
+                </div>
+            </div>
+
+        </div>
+
+        
+        <div class="row">
+
+            <div class="col-sm">
+                <div class="input-group mb-3">
+                    <div class="input-group-prepend">
+                        <span class="input-group-text">p</span>
+                    </div>
+                    <input id="p-value" type="text" class="form-control" value="41">
+                </div>
+            </div>
+
+            <div class="col-sm">
+                <div class="input-group mb-3">
+                    <div class="input-group-prepend">
+                        <span class="input-group-text">q</span>
+                    </div>
+                    <input id="q-value" type="text" class="form-control" value="97">
+                </div>
+            </div>
+
+            <div class="col-sm-1">
+                <button type="button" onclick="calculatePublic()" class="btn btn-info"><i class="fas fa-sync-alt"></i></button>
+            </div>
+
+        </div>
+
+        <div id="secret">
+        <div class="row">
+
+                <div class="col-sm">
+                    <div class="alert alert-success" role="alert">
+                        This two numbers are your public key, anyone can use them to send you secure messages.
+                    </div>
+                </div>
+    
+            </div>
+
+        <div class="row">
+
+            <div class="col-sm">
+                <div class="input-group mb-3">
+                    <div class="input-group-prepend">
+                        <span class="input-group-text">N</span>
+                    </div>
+                    <input id="N-value" type="text" class="form-control">
+                </div>
+            </div>
+
+            <div class="col-sm">
+                <div class="input-group mb-3">
+                    <div class="input-group-prepend">
+                        <span class="input-group-text">e</span>
+                    </div>
+                    <input id="e-value" type="text" class="form-control">
+                </div>
+            </div>
+    
+        </div>
+        </div>
+
+            <br>
+                  
+        <div class="row">
+                    
+            <div class="col-sm">
+                <h2>Decrypt message from sender.</h2>
+                <div class="input-group">
+                    <div class="input-group-prepend">
+                        <span class="input-group-text" >Number to decrypt <br> (with commas)</span>
+                    </div>
+                    <textarea id="text-value" class="form-control" aria-label="With textarea"></textarea>
+                </div>
+            </div>
+
+        </div>
+
+        <br>
+
+
+        <div class="row">
+            <div class="col-sm">
+                <button type="button" onclick="decrypt()" class="btn btn-primary"><i class="fas fa-key"></i> Decrypt</button>
+            </div>
+        </div>
+
+        <br>
+
+        <div class="row">
+            <div class="col-sm">
+                <div class="form-group">
+                    <label>Decrypted message</label>
+                    <textarea class="form-control" id="output" rows="3"></textarea>
+                </div>    
+            </div>
+        </div>
+
+    </div>
+    
+    <script src="http://peterolson.github.com/BigInteger.js/BigInteger.min.js"></script>
+    <script defer src="https://use.fontawesome.com/releases/v5.0.8/js/all.js" integrity="sha384-SlE991lGASHoBfWbelyBPLsUlwY1GwNDJo3jSJO04KZ33K2bwfV9YBauFfnzvynJ" crossorigin="anonymous"></script>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+    <script src="scripts.js"></script>
+</body>
+</html>
