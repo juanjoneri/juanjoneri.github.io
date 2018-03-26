@@ -55,17 +55,15 @@ function stringNumber(str) {
     let ans = ""
     for (let i = 0; i < str.length; i ++) {
         if (str.charCodeAt(i) === 32){
-            ans += "99"; // treat spaces specially
+            ans += "99"; // treat spaces especially
         } else {
-            ans += (str.charCodeAt(i) - 55).toString();
+            ans += (str.charCodeAt(i) - 38).toString();
         }
     }
-    console.log(ans);
     return ans;
 }
 
 function numberString(nums) {
-    console.log(nums)
     let ans = ""
     nums.forEach((num) => {
         let str = num.toString();
@@ -73,7 +71,7 @@ function numberString(nums) {
             if (chunk === "99") {
                 ans += " ";
             } else {
-                ans += String.fromCharCode(parseInt(chunk) + 55);
+                ans += String.fromCharCode(parseInt(chunk) + 38);
             }
         });
     });
