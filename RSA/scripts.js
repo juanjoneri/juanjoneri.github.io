@@ -3,10 +3,11 @@ $("#secret").hide();
 function encrypt() {
     const N = $('#N-value').val();
     const e = $('#e-value').val();
-    const text = $('#text-value').val();
+    const text = stringNumber($('#text-value').val());
 
-    const size = Math.floor(Math.log10(N))
+    const size = closestBinary(Math.floor(Math.log10(N)))
     const chunks = chunkString(text.toString(), size);
+    console.log(chunks)
 
     let encrypted = []
     chunks.forEach((chunk) => {
@@ -14,6 +15,13 @@ function encrypt() {
     });
     
     $('#output').val(encrypted);
+}
+
+function closestBinary(n) {
+    while (n % 2 !== 0) {
+        n--;
+    }
+    return n;
 }
 
 function calculatePublic() {
@@ -39,7 +47,37 @@ function decrypt() {
         let value = parseInt(chunk);
         messageChunks.push(modPower(value, d, N));
     });
-    $('#output').val(messageChunks.join(""));
+    msg = numberString(messageChunks);
+    $('#output').val(msg);
+}
+
+function stringNumber(str) {
+    let ans = ""
+    for (let i = 0; i < str.length; i ++) {
+        if (str.charCodeAt(i) === 32){
+            ans += "99"; // treat spaces specially
+        } else {
+            ans += (str.charCodeAt(i) - 55).toString();
+        }
+    }
+    console.log(ans);
+    return ans;
+}
+
+function numberString(nums) {
+    console.log(nums)
+    let ans = ""
+    nums.forEach((num) => {
+        let str = num.toString();
+        chunkString(str, 2).forEach((chunk) => {
+            if (chunk === "99") {
+                ans += " ";
+            } else {
+                ans += String.fromCharCode(parseInt(chunk) + 55);
+            }
+        });
+    });
+    return ans
 }
 
 function chunkString(str, length) {
