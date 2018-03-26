@@ -114,12 +114,10 @@ function isPrime(num) {
 }
 
 function randomPrime(max) {
-    let primes = [];
-    for (let i = Math.ceil(max/2); i < max; i++ ) {
-        if (isPrime(i)) {
-            primes.push(i);
-        }
+    let range = max / 2
+    let attempt = Math.floor(Math.random()*range + range);
+    while (!isPrime(attempt)) {
+        attempt = Math.floor(Math.random()*range + range);
     }
-    let index = Math.floor(Math.random() * primes.length)
-    return primes[index];
+    return attempt;
 }
