@@ -15,7 +15,7 @@ data + build script
    │ encrypt (staticrypt, per-site password)
    │ sign (deploy key)
    └ force-push        ─────────────────▶  branch site/net-worth   (latest copy only)
-                                              │ deploy workflow, every 10 min if changed
+                                              │ deploy workflow (triggered by the push)
                                               ▼  only slugs in registry.json, signature checked
                                            /p/net-worth/…  (GitHub Pages)
 ```
@@ -63,7 +63,7 @@ Nothing encrypted is committed to `master`, so changing a password fully retires
    ("signing key (public, for registry.json)").
 5. Add `{ "slug": "<repo-name>", "repo": "juanjoneri/<repo-name>", "key": "ssh-ed25519 …" }` to `registry.json`
    (by pull request: `master` is protected). Until the key is registered the site is signed but not deployed. After
-   that, every publish appears at `/p/<repo-name>/` within about 10 minutes, and the landing page lists it.
+   that, every publish appears at `/p/<repo-name>/` within a few minutes, and the landing page lists it.
 
 ## Page contract
 
@@ -135,7 +135,7 @@ gridlines beyond a dashed baseline, series colours in order.
 |---|---|
 | cadence | Each private repo's `schedule` cron. Manual: Actions → site → Run workflow. Cron is UTC: for local-time windows, schedule both DST hours and gate on `TZ=America/Los_Angeles date +%H` in a first job. |
 | build secrets | API tokens live in the private repo's secrets and are passed as `BUILD_ENV` lines; only the build step sees them. Use read-only tokens scoped to one base or resource. |
-| go-live delay | The deploy runs every 10 minutes and only when `master` or a `site/*` branch changed. To publish now: this repo → Actions → deploy → Run workflow. |
+| go-live delay | Each site push triggers the deploy (a few minutes). A 10-minute schedule is a fallback. To publish now: this repo → Actions → deploy → Run workflow. |
 | hub changes | `master` is protected: only Juan pushes it; everyone else opens a pull request. After changing `publish.yml`, `.github/scripts/encrypt.sh` / `push.sh`, `.github/staticrypt` or `assets/unlock.html`, bump the pinned commit (`uses: …@<sha>` and `hub_ref`) in every private repo. |
 | new deploy key | Generate a new key, replace the public half under Deploy keys and the private half in the repo's `HUB_DEPLOY_KEY`, run its workflow, then put the new "signing key" from the log in `registry.json`. |
 | site rejected | The deploy log says why: "bad signature or manifest" (wrong key, or files changed after signing), "unsigned" (no key in the registry yet), or non-HTML / unencrypted files. |

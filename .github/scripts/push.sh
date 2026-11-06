@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Sign the encrypted output with this site's deploy key and force-push it to site/<slug> on the hub (no history).
-# The hub's deploy workflow picks it up on its next scheduled run and verifies the signature against registry.json.
+# The pushed branch also carries .github/workflows/kick.yml, which runs on the hub for that push and asks the hub to run
+# deploy.yml on master (GitHub's schedule is unreliable). The deploy verifies the signature against registry.json.
 set -euo pipefail
 : "${SLUG:?}" "${OUT:?}" "${HUB:?}"
 [ -n "${HUB_DEPLOY_KEY:-}" ] || { echo "::error::HUB_DEPLOY_KEY secret is missing in this repo"; exit 1; }
@@ -19,7 +20,23 @@ cd "$OUT"
 ssh-keygen -Y sign -q -f ~/.ssh/hub -n juanjoneri-site _site.manifest
 echo "signing key (public, for registry.json): $(ssh-keygen -y -f ~/.ssh/hub | cut -d' ' -f1-2)"
 
+mkdir -p .github/workflows
+cat > .github/workflows/kick.yml <<'YML'
+# Pushed by the hub's push.sh with every site/<slug> branch: ask the hub to deploy master. Not part of the page.
+name: kick
+on: push
+permissions:
+  actions: write
+jobs:
+  kick:
+    runs-on: ubuntu-latest
+    steps:
+      - run: gh workflow run deploy.yml --repo "$GITHUB_REPOSITORY" --ref master
+        env:
+          GH_TOKEN: ${{ github.token }}
+YML
+
 git init -q -b site && git add -A
 git -c user.name=publish-bot -c user.email=publish-bot@users.noreply.github.com commit -q -m "$SLUG @ ${GITHUB_SHA:0:7}"
 git push -qf "$REMOTE" "HEAD:refs/heads/site/$SLUG"
-echo "pushed site/$SLUG (deployed by the hub within ~10 min)"
+echo "pushed site/$SLUG (the hub deploys it within a few minutes)"

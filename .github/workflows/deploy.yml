@@ -1,8 +1,8 @@
 name: deploy
 
 # Builds the whole site: public files on master + every registered site/<slug> branch (signed, encrypted pages).
-# Private repos only push their site/<slug> branch (they cannot write master), so this runs on a schedule and
-# deploys only when master or a site branch changed since the last deploy.
+# Private repos only push their site/<slug> branch (they cannot write master). That push carries a small kick.yml that
+# dispatches this workflow; the schedule is a fallback. Scheduled runs deploy only when something changed.
 on:
   push:
     branches: [master]
