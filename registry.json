@@ -7,6 +7,10 @@
     {
       "slug": "airtable-debts",
       "repo": "juanjoneri/airtable-debts"
+    },
+    {
+      "slug": "purchase-receipts",
+      "repo": "juanjoneri/purchase-receipts"
     }
   ]
 }
