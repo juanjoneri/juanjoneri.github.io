@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Force-push encrypted output to site/<slug> on the hub (no history), then record it in sites.lock.json on master
-# (that commit is what triggers the hub's deploy workflow).
+# Sign the encrypted output with this site's deploy key and force-push it to site/<slug> on the hub (no history).
+# The hub's deploy workflow picks it up on its next scheduled run and verifies the signature against registry.json.
 set -euo pipefail
 : "${SLUG:?}" "${OUT:?}" "${HUB:?}"
 [ -n "${HUB_DEPLOY_KEY:-}" ] || { echo "::error::HUB_DEPLOY_KEY secret is missing in this repo"; exit 1; }
@@ -10,21 +10,16 @@ printf '%s\n' "$HUB_DEPLOY_KEY" > ~/.ssh/hub && chmod 600 ~/.ssh/hub
 # GitHub's published host key (SHA256:+DiY3wvvV6TuJJhbpZisF/zLDA0zPMSvHdkr4UvCOqU)
 echo "github.com ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOMqqnkVzrm0SdG6UOoqKLsabgH5C9okWi0dh2l9GKJl" > ~/.ssh/known_hosts
 export GIT_SSH_COMMAND="ssh -i ~/.ssh/hub -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes"
-git config --global user.name "publish-bot"
-git config --global user.email "publish-bot@users.noreply.github.com"
 REMOTE="git@github.com:$HUB.git"
-SRC_SHA=${GITHUB_SHA:0:7}
 
-( cd "$OUT" && git init -q -b site && git add -A && git commit -qm "$SLUG @ $SRC_SHA" && git push -qf "$REMOTE" "HEAD:refs/heads/site/$SLUG" )
-echo "pushed site/$SLUG"
+# Signed manifest: the slug plus the sha256 of every file. The hub only deploys a site whose manifest was signed
+# by the key registered for that slug, so one site's key cannot publish another site's pages.
+cd "$OUT"
+{ echo "slug: $SLUG"; find . -type f -name '*.html' | LC_ALL=C sort | xargs -d '\n' sha256sum; } > _site.manifest
+ssh-keygen -Y sign -q -f ~/.ssh/hub -n juanjoneri-site _site.manifest
+echo "signing key (public, for registry.json): $(ssh-keygen -y -f ~/.ssh/hub | cut -d' ' -f1-2)"
 
-for attempt in 1 2 3 4 5; do
-  rm -rf .hub-stamp
-  git clone -q --depth 1 --branch master "$REMOTE" .hub-stamp
-  ( cd .hub-stamp
-    [ -f sites.lock.json ] || echo '{}' > sites.lock.json
-    jq --arg s "$SLUG" --arg c "$SRC_SHA" --arg t "$(date -u +%FT%TZ)" '.[$s] = {source_commit: $c, published_at: $t}' sites.lock.json > l && mv l sites.lock.json
-    git add sites.lock.json && git commit -qm "publish: $SLUG @ $SRC_SHA" && git push -q origin master ) && { echo "stamped master"; exit 0; }
-  sleep $((attempt * 3))
-done
-echo "::error::could not update sites.lock.json on master"; exit 1
+git init -q -b site && git add -A
+git -c user.name=publish-bot -c user.email=publish-bot@users.noreply.github.com commit -q -m "$SLUG @ ${GITHUB_SHA:0:7}"
+git push -qf "$REMOTE" "HEAD:refs/heads/site/$SLUG"
+echo "pushed site/$SLUG (deployed by the hub within ~10 min)"

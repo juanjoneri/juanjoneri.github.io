@@ -43,10 +43,10 @@
 data + build script
    │ build             → dist/**/*.html  (plaintext, never leaves the runner)
    │ encrypt (staticrypt, per-site password)
-   │ force-push        ─────────────────▶  branch site/net-worth   (latest copy only)
-   └ stamp             ─────────────────▶  master: sites.lock.json
-                                              │ deploy workflow
-                                              ▼  only slugs in registry.json
+   │ sign (deploy key)
+   └ force-push        ─────────────────▶  branch site/net-worth   (latest copy only)
+                                              │ deploy workflow, every 10 min if changed
+                                              ▼  only slugs in registry.json, signature checked
                                            /p/net-worth/…  (GitHub Pages)</pre>
   <p class="muted">Nothing encrypted is committed to <code>master</code>, so changing a password fully retires the old one.</p>
 
@@ -61,7 +61,7 @@ data + build script
 
   <h2 id="register"><span class="label">register a private repo</span></h2>
   <ol>
-    <li>Add <code>{ "slug": "&lt;repo-name&gt;", "repo": "juanjoneri/&lt;repo-name&gt;" }</code> to <code>registry.json</code> here.</li>
+    <li>Add <code>{ "slug": "&lt;repo-name&gt;", "repo": "juanjoneri/&lt;repo-name&gt;", "key": "ssh-ed25519 …" }</code> to <code>registry.json</code> here (by PR: <code>master</code> is protected). The key is printed in the private repo's first publish log as "signing key".</li>
     <li>Generate a password in the password manager → private repo → <b>Settings → Secrets → Actions</b> → <code>STATICRYPT_PASSWORD</code>.</li>
     <li>Make a deploy key on your machine:
 <pre>ssh-keygen -t ed25519 -N "" -C "&lt;repo-name&gt; → hub" -f hub_key</pre>
@@ -83,7 +83,7 @@ jobs:
       STATICRYPT_PASSWORD: ${{ secrets.STATICRYPT_PASSWORD }}
       HUB_DEPLOY_KEY: ${{ secrets.HUB_DEPLOY_KEY }}
       BUILD_ENV: API_TOKEN=${{ secrets.API_TOKEN }}   # optional: secrets for the build step only</pre></li>
-    <li>Push. The site appears at <code>/p/&lt;repo-name&gt;/</code> a minute or two later.</li>
+    <li>Push. The site appears at <code>/p/&lt;repo-name&gt;/</code> within about 10 minutes.</li>
   </ol>
 
   <h2 id="contract"><span class="label">page contract</span></h2>

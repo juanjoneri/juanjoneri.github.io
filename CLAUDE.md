@@ -4,13 +4,12 @@ This repo is the **public hub**. It holds rules, shared style, and tooling. Priv
 The human-readable manual is `index.html` (served at https://juanjoneri.github.io); keep it in sync with this file.
 
 ## Layout
-- `index.html` — the manual (rules, registration steps, page contract, style guide). Its "sites" table is generated at deploy time from `registry.json` + `sites.lock.json` (placeholder `<!-- SITES -->`).
+- `index.html` — the manual (rules, registration steps, page contract, style guide). Its "sites" table is generated at deploy time from `registry.json` and the site branches (placeholder `<!-- SITES -->`).
 - `assets/style.css` — shared tokens and components. `assets/unlock.html` — StatiCrypt template. `assets/favicon.svg`.
-- `registry.json` — allowlist of private sites (`slug` = private repo name). Only these are deployed and listed.
-- `sites.lock.json` — last publish per site, written by private repos; pushing it triggers deploy.
-- `.github/workflows/publish.yml` — reusable workflow private repos call. Job `build` (build → encrypt; never sees the deploy key) and job `push` (push `site/<slug>`; runs no repo code).
+- `registry.json` — allowlist of private sites: `slug` (= private repo name) and `key` (public half of that repo's deploy key, which signs its pages). `require_signatures: true` rejects any unsigned or wrongly signed site.
+- `.github/workflows/publish.yml` — reusable workflow private repos call. Job `build` (build → encrypt; never sees the deploy key) and job `push` (signs a manifest of the files with the deploy key, force-pushes `site/<slug>`; runs no repo code). Private repos never write `master`.
 - `.github/staticrypt/` — package.json + lockfile; installed with `npm ci --ignore-scripts`.
-- `.github/workflows/deploy.yml` + `.github/scripts/assemble.sh` — builds Pages from master + `site/*` branches.
+- `.github/workflows/deploy.yml` + `.github/scripts/assemble.sh` — builds Pages from master + `site/*` branches. Runs on push to master and every 10 min; skips when nothing changed (`deploy-state.txt` on the live site). Verifies each site's signature (`ssh-keygen -Y verify`, namespace `juanjoneri-site`).
 - `archive/` — 2018 portfolio. Leave as is.
 
 ## Hard rules
@@ -20,7 +19,8 @@ The human-readable manual is `index.html` (served at https://juanjoneri.github.i
 4. Site slugs and titles are public (registry, landing page, branch names). Never put sensitive details in a repo name.
 5. Private repos pin the hub to one reviewed commit: `uses: …/publish.yml@<sha>` **and** `hub_ref: <same sha>`. After changing hub tooling (`publish.yml`, `.github/scripts`, `.github/staticrypt`, `assets/unlock.html`), bump that SHA in every private repo's `site.yml`.
 6. `archive/` must not load third-party scripts; vendor them under `archive/vendor/`. Every page on this origin can read every site's "remember me" key.
-7. Site branches may contain only regular `.html` files; `assemble.sh` rejects symlinks and anything else.
+7. Site branches may contain only regular `.html` files plus `_site.manifest` / `_site.manifest.sig`; `assemble.sh` rejects symlinks and anything else.
+8. `master` is protected by a ruleset: only Juan pushes it. Claude sessions push a branch and open a PR. Registering a site = PR adding its `slug` and `key` to `registry.json`; the key is printed in the private repo's publish log ("signing key (public, for registry.json)").
 
 ## Building a page in a private repo
 - Build writes plain HTML to `dist/`; `dist/index.html` required; subpages are any `dist/**/*.html`; links are relative.
