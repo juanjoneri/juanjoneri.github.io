@@ -83,7 +83,7 @@ jobs:
       STATICRYPT_PASSWORD: ${{ secrets.STATICRYPT_PASSWORD }}
       HUB_DEPLOY_KEY: ${{ secrets.HUB_DEPLOY_KEY }}
       BUILD_ENV: API_TOKEN=${{ secrets.API_TOKEN }}   # optional: secrets for the build step only</pre></li>
-    <li>Push. The site appears at <code>/p/&lt;repo-name&gt;/</code> within about 10 minutes.</li>
+    <li>Push. The first publish prints the site's <b>signing key</b> in its push-job log; put it in <code>registry.json</code> (step 1). Until the key is registered the site is signed but not deployed. After that, every publish appears at <code>/p/&lt;repo-name&gt;/</code> within about 10 minutes.</li>
   </ol>
 
   <h2 id="contract"><span class="label">page contract</span></h2>
@@ -158,8 +158,12 @@ jobs:
   <table>
     <tr><td>cadence</td><td>Each private repo's <code>schedule</code> cron. Manual: Actions → site → Run workflow. Cron is UTC: for local-time windows, schedule both DST hours and gate on <code>TZ=America/Los_Angeles date +%H</code> in a first job.</td></tr>
     <tr><td>build secrets</td><td>API tokens live in the private repo's secrets and are passed as <code>BUILD_ENV</code> lines; only the build step sees them. Use read-only tokens scoped to one base or resource.</td></tr>
+    <tr><td>go-live delay</td><td>The deploy runs every 10 minutes and only when <code>master</code> or a <code>site/*</code> branch changed. To publish now: this repo → Actions → deploy → Run workflow.</td></tr>
+    <tr><td>hub changes</td><td><code>master</code> is protected: only Juan pushes it; everyone else opens a pull request. After changing <code>publish.yml</code>, <code>.github/scripts</code>, <code>.github/staticrypt</code> or <code>assets/unlock.html</code>, bump the pinned commit (<code>uses: …@&lt;sha&gt;</code> and <code>hub_ref</code>) in every private repo.</td></tr>
+    <tr><td>new deploy key</td><td>Generate a new key, replace the public half under Deploy keys and the private half in the repo's <code>HUB_DEPLOY_KEY</code>, run its workflow, then put the new "signing key" from the log in <code>registry.json</code>.</td></tr>
+    <tr><td>site rejected</td><td>The deploy log says why: "bad signature or manifest" (wrong key, or files changed after signing), "unsigned" (no key in the registry yet), or non-HTML / unencrypted files.</td></tr>
     <tr><td>new password</td><td>Replace the repo secret, re-run its workflow, update the password manager. The old one stops working.</td></tr>
-    <tr><td>unregister</td><td>Remove from <code>registry.json</code>; delete branch <code>site/&lt;repo&gt;</code> and its deploy key.</td></tr>
+    <tr><td>unregister</td><td>Remove it from <code>registry.json</code>; delete the branch <code>site/&lt;repo&gt;</code> and its deploy key.</td></tr>
     <tr><td>failed publish</td><td>Check the private repo's Actions log (private). Deploy errors are in this repo's Actions log; they never contain page content.</td></tr>
   </table>
 
