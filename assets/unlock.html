@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>/*[|template_title|]*/0</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="robots" content="noindex, nofollow" />
+<meta http-equiv="cache-control" content="no-cache" />
+<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml" />
+<style>
+  :root {
+    --bg:#fcfcfb; --fg:#0b0b0b; --text:#383835; --muted:#8a8984; --line:#e6e5e1;
+    --accent:#2a78d6; --bad:#d6455d; --field:#ffffff;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg:#111110; --fg:#f2f1ed; --text:#cfcdc7; --muted:#8a8984; --line:#2a2a28; --accent:#5b9ae6; --bad:#e8687d; --field:#181817; }
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; }
+  body {
+    background: var(--bg); color: var(--text);
+    font: 13px/1.6 Menlo, Consolas, "Courier New", monospace;
+    display: flex; align-items: center; justify-content: center; padding: 16px;
+  }
+  .hidden { display: none !important; }
+  .box { width: 100%; max-width: 380px; }
+  .label { font-size: 11px; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); }
+  h1 { font-size: 16px; font-weight: 700; color: var(--fg); margin: 6px 0 4px; }
+  .note { color: var(--muted); margin: 0 0 20px; }
+  hr { border: 0; border-top: 1px dashed var(--line); margin: 0 0 20px; }
+  .field { position: relative; margin-bottom: 12px; }
+  input[type=password], input[type=text] {
+    width: 100%; font: inherit; font-size: 16px; color: var(--fg); background: var(--field);
+    border: 1px solid var(--line); border-radius: 3px; padding: 10px 40px 10px 12px; outline: 0;
+  }
+  input:focus { border-color: var(--accent); }
+  .eye { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); width: 18px; height: 18px; opacity: .45; cursor: pointer; }
+  @media (prefers-color-scheme: dark) { .eye { filter: invert(1); } }
+  label.remember { display: flex; gap: 8px; align-items: center; color: var(--muted); margin-bottom: 16px; cursor: pointer; }
+  button {
+    width: 100%; font: inherit; letter-spacing: 1px; text-transform: uppercase; cursor: pointer;
+    background: transparent; color: var(--accent); border: 1px solid var(--accent); border-radius: 3px; padding: 10px;
+  }
+  button:hover { background: var(--accent); color: var(--bg); }
+  .err { color: var(--bad); margin-top: 12px; min-height: 1.6em; }
+  .spin { color: var(--muted); }
+  .foot { margin-top: 28px; color: var(--muted); font-size: 11px; }
+  .foot a { color: var(--muted); }
+</style>
+</head>
+<body>
+<div id="staticrypt_loading" class="spin">decrypting…</div>
+<div id="staticrypt_content" class="box hidden">
+  <div class="label">▍locked page</div>
+  <h1>/*[|template_title|]*/0</h1>
+  <p class="note">/*[|template_instructions|]*/0</p>
+  <hr />
+  <form id="staticrypt-form" action="#" method="post">
+    <div class="field">
+      <input id="staticrypt-password" type="password" name="password" placeholder="/*[|template_placeholder|]*/0" autocomplete="current-password" autofocus />
+      <img class="eye staticrypt-toggle-password-visibility" alt="/*[|template_toggle_show|]*/0" title="/*[|template_toggle_show|]*/0"
+        src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2'><path d='M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z'/><circle cx='12' cy='12' r='3'/></svg>" />
+    </div>
+    <label id="staticrypt-remember-label" class="remember hidden">
+      <input id="staticrypt-remember" type="checkbox" name="remember" /> /*[|template_remember|]*/0
+    </label>
+    <button type="submit">/*[|template_button|]*/0</button>
+    <div id="err" class="err" role="alert"></div>
+  </form>
+  <div class="foot"><a href="/">← juanjoneri.github.io</a></div>
+</div>
+<script>
+  const staticryptInitiator = /*[|js_staticrypt|]*/ 0;
+  const templateError = "/*[|template_error|]*/0",
+    templateToggleAltShow = "/*[|template_toggle_show|]*/0",
+    templateToggleAltHide = "/*[|template_toggle_hide|]*/0",
+    isRememberEnabled = /*[|is_remember_enabled|]*/ 0,
+    staticryptConfig = /*[|staticrypt_config|]*/ 0;
+
+  // Every page shares one origin, so "remember me" keys are namespaced by the page's salt.
+  // Otherwise opening one page would try (and wipe) another page's remembered key.
+  const ns = staticryptConfig.staticryptSaltUniqueVariableName;
+  const templateConfig = {
+    rememberExpirationKey: "staticrypt_expiration_" + ns,
+    rememberPassphraseKey: "staticrypt_passphrase_" + ns,
+    replaceHtmlCallback: null,
+    clearLocalStorageCallback: null,
+  };
+  const staticrypt = staticryptInitiator.init(staticryptConfig, templateConfig);
+
+  window.onload = async function () {
+    const { isSuccessful } = await staticrypt.handleDecryptOnLoad();
+    if (!isSuccessful) {
+      document.getElementById("staticrypt_loading").classList.add("hidden");
+      document.getElementById("staticrypt_content").classList.remove("hidden");
+      document.getElementById("staticrypt-password").focus();
+      if (isRememberEnabled) document.getElementById("staticrypt-remember-label").classList.remove("hidden");
+    }
+  };
+
+  const eye = document.querySelector(".staticrypt-toggle-password-visibility");
+  eye.addEventListener("click", function () {
+    const i = document.getElementById("staticrypt-password");
+    const show = i.type === "password";
+    i.type = show ? "text" : "password";
+    eye.style.opacity = show ? 0.9 : 0.45;
+    eye.alt = eye.title = show ? templateToggleAltHide : templateToggleAltShow;
+  });
+
+  document.getElementById("staticrypt-form").addEventListener("submit", async function (e) {
+    e.preventDefault();
+    const err = document.getElementById("err");
+    err.textContent = "";
+    const password = document.getElementById("staticrypt-password").value,
+      remember = document.getElementById("staticrypt-remember").checked;
+    const { isSuccessful } = await staticrypt.handleDecryptionOfPage(password, remember);
+    if (!isSuccessful) err.textContent = "✗ " + templateError;
+  });
+</script>
+</body>
+</html>
