@@ -38,6 +38,7 @@ for slug in $(jq -r '.sites[].slug' registry.json); do
     echo "::warning::$slug is not signed (or has no key in registry.json)"; signed=""
   fi
   rm -f "$tmp/_site.manifest" "$tmp/_site.manifest.sig"
+  rm -f "$tmp/.github/workflows/kick.yml" && rmdir "$tmp/.github/workflows" "$tmp/.github" 2>/dev/null || true   # deploy trigger, not content
   # Only regular .html files and directories are allowed (no symlinks, devices, or other file types).
   non_html=$(cd "$tmp" && find . ! -type d ! \( -type f -name '*.html' \))
   html=$(cd "$tmp" && find . -type f -name '*.html')

@@ -11,7 +11,7 @@ file. The served landing page (`index.html`) only lists the sites: no architectu
 - `registry.json` — allowlist of private sites: `slug` (= private repo name) and `key` (public half of that repo's deploy key, which signs its pages). `require_signatures: true` rejects any unsigned or wrongly signed site.
 - `.github/workflows/publish.yml` — reusable workflow private repos call. Job `build` (build → encrypt; never sees the deploy key) and job `push` (signs a manifest of the files with the deploy key, force-pushes `site/<slug>`; runs no repo code). Private repos never write `master`.
 - `.github/staticrypt/` — package.json + lockfile; installed with `npm ci --ignore-scripts`.
-- `.github/workflows/deploy.yml` + `.github/scripts/assemble.sh` — builds Pages from master + `site/*` branches. Runs on push to master and every 10 min; skips when nothing changed (`deploy-state.txt` on the live site). Verifies each site's signature (`ssh-keygen -Y verify`, namespace `juanjoneri-site`).
+- `.github/workflows/deploy.yml` + `.github/scripts/assemble.sh` — builds Pages from master + `site/*` branches. Runs on push to master, when dispatched by a site branch's `kick.yml`, and every 10 min as a fallback (scheduled runs skip when nothing changed, via `deploy-state.txt` on the live site). Verifies each site's signature (`ssh-keygen -Y verify`, namespace `juanjoneri-site`).
 - `archive/` — 2018 portfolio, kept for posterity. Not deployed and not linked; leave as is.
 
 ## Hard rules
@@ -21,7 +21,7 @@ file. The served landing page (`index.html`) only lists the sites: no architectu
 4. Site slugs and titles are public (registry, landing page, branch names). Never put sensitive details in a repo name.
 5. Private repos pin the hub to one reviewed commit: `uses: …/publish.yml@<sha>` **and** `hub_ref: <same sha>`. After changing hub tooling (`publish.yml`, `.github/scripts`, `.github/staticrypt`, `assets/unlock.html`), bump that SHA in every private repo's `site.yml`.
 6. Nothing on this origin may load third-party scripts: every page here can read every site's "remember me" key. `archive/` is not deployed; if it ever is again, its scripts are already vendored under `archive/vendor/`.
-7. Site branches may contain only regular `.html` files plus `_site.manifest` / `_site.manifest.sig`; `assemble.sh` rejects symlinks and anything else.
+7. Site branches may contain only regular `.html` files plus `_site.manifest` / `_site.manifest.sig` and `.github/workflows/kick.yml` (written by push.sh; dispatches deploy.yml on master; stripped before publishing); `assemble.sh` rejects symlinks and anything else.
 8. `master` is protected by a ruleset: only Juan pushes it. Claude sessions push a `claude/*` branch and open a PR. Registering a site = PR adding its `slug` and `key` to `registry.json`; the key is printed in the private repo's publish log ("signing key (public, for registry.json)").
 
 ## Building a page in a private repo
@@ -35,10 +35,10 @@ file. The served landing page (`index.html`) only lists the sites: no architectu
 - Follow the style guide in `MANUAL.md` (monospace, 13px, `.label`, `.kpi`, `table`/`td.num`, status icons, series colours `--s1…--s7`).
 
 ## Operations notes
-- Go-live delay: private repos only push `site/<slug>`; `deploy.yml` picks changes up every 10 min (`3-59/10`). Publish now:
+- Go-live: each `site/<slug>` push carries `kick.yml`, which dispatches `deploy.yml` on master (a few minutes end to end).
+  GitHub's schedule (`3-59/10`) is only a fallback: it never fired on Nov 6 2026, even after Juan edited the cron. Publish now:
   `gh api -X POST repos/juanjoneri/juanjoneri.github.io/actions/workflows/deploy.yml/dispatches -f ref=master`.
-- Only Juan edits the `cron` line in `deploy.yml`. GitHub runs a schedule as whoever last changed it, and a schedule last
-  edited by the Claude GitHub App never fired (Nov 6 2026).
+- Only Juan edits the `cron` line in `deploy.yml` (GitHub runs a schedule as whoever last changed it).
 - New site: its first publish prints "signing key (public, for registry.json)" in the push-job log; add it as `key` in
   `registry.json` (PR). Until then the site is not deployed (`require_signatures: true`).
 - Deploy log lines to check: `✓ /p/<slug> (N page(s)) signed`; errors name the reason (bad signature or manifest,
