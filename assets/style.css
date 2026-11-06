@@ -43,6 +43,7 @@ td.good { color: var(--good); } td.warn { color: var(--warn); } td.bad { color: 
 .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin: 0 0 16px; }
 .kpi { border: 1px solid var(--line); border-radius: var(--radius); padding: 10px 12px; background: var(--surface); }
 .kpi .v { font-size: 18px; color: var(--fg); font-variant-numeric: tabular-nums; }
+.kpi .v.good { color: var(--good); } .kpi .v.warn { color: var(--warn); } .kpi .v.bad { color: var(--bad); }
 .kpi .d { font-size: 11px; }
 
 /* outlined button / tag */
