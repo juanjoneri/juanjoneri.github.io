@@ -35,7 +35,9 @@ pre { font-family: var(--mono); background: var(--surface); border: 1px solid va
 table { border-collapse: collapse; width: 100%; margin: 0 0 12px; }
 th { text-align: left; font-weight: 400; font-size: 11px; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); padding: 6px 8px 6px 0; border-bottom: 1px solid var(--line); }
 td { padding: 7px 8px 7px 0; border-bottom: 1px dashed var(--line); vertical-align: top; }
-td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; color: var(--fg); padding-right: 0; }
+td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; padding-right: 0; }
+td.num { color: var(--fg); }
+td.good { color: var(--good); } td.warn { color: var(--warn); } td.bad { color: var(--bad); } td.muted { color: var(--muted); }
 
 /* KPI row */
 .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin: 0 0 16px; }

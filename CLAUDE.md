@@ -22,5 +22,7 @@ The human-readable manual is `index.html` (served at https://juanjoneri.github.i
 - Build writes plain HTML to `dist/`; `dist/index.html` required; subpages are any `dist/**/*.html`; links are relative.
 - Only `.html` files in `dist/` (inline CSS/JS/SVG/data-URI images). Pages may link `/assets/style.css` and `/assets/favicon.svg`.
 - Include `<meta name="robots" content="noindex, nofollow">`.
-- Show aggregates only: no account numbers, card digits, addresses, emails, phone numbers, or third parties' names.
+- Show aggregates only: no account numbers, card digits, addresses, emails, or phone numbers. People may appear by first name or nickname only (never full names).
+- Build-time secrets (API tokens) go in the private repo's secrets and reach the build via the `BUILD_ENV` secret of publish.yml (KEY=VALUE lines); they are exported to the build step only.
+- Time-window cadence: GitHub cron is UTC-only, so schedule both DST variants of each hour and gate on local time in a first job (see airtable-debts/.github/workflows/site.yml).
 - Follow the style guide in `index.html` (monospace, 13px, `.label`, `.kpi`, `table`/`td.num`, status icons, series colours `--s1…--s7`).

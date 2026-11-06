@@ -45,7 +45,7 @@ data + build script
   <h2 id="rules"><span class="label">rules</span></h2>
   <table>
     <tr><td>1</td><td>Raw data, credentials and business logic stay in the private repo.</td></tr>
-    <tr><td>2</td><td>Pages show <b>aggregates</b>: totals, trends, categories. No account numbers, card digits, addresses, emails, phone numbers, or other people's names.</td></tr>
+    <tr><td>2</td><td>Pages show <b>aggregates</b>: totals, trends, categories. No account numbers, card digits, addresses, emails or phone numbers. People by first name or nickname only.</td></tr>
     <tr><td>3</td><td>Every private page is encrypted. Nothing private is ever committed to this repo in plaintext.</td></tr>
     <tr><td>4</td><td>One password per site, stored in the password manager and as that repo's <code>STATICRYPT_PASSWORD</code> secret. 6+ random words.</td></tr>
     <tr><td>5</td><td>Private sites are not listed on this page. You reach them by URL.</td></tr>
@@ -73,7 +73,8 @@ jobs:
       title: Net worth          # shown on the unlock screen
     secrets:
       STATICRYPT_PASSWORD: ${{ secrets.STATICRYPT_PASSWORD }}
-      HUB_DEPLOY_KEY: ${{ secrets.HUB_DEPLOY_KEY }}</pre></li>
+      HUB_DEPLOY_KEY: ${{ secrets.HUB_DEPLOY_KEY }}
+      BUILD_ENV: API_TOKEN=${{ secrets.API_TOKEN }}   # optional: secrets for the build step only</pre></li>
     <li>Push. The site appears at <code>/p/&lt;repo-name&gt;/</code> a minute or two later.</li>
   </ol>
 
@@ -146,7 +147,8 @@ jobs:
 
   <h2 id="ops"><span class="label">operations</span></h2>
   <table>
-    <tr><td>cadence</td><td>Each private repo's <code>schedule</code> cron. Manual: Actions → site → Run workflow.</td></tr>
+    <tr><td>cadence</td><td>Each private repo's <code>schedule</code> cron. Manual: Actions → site → Run workflow. Cron is UTC: for local-time windows, schedule both DST hours and gate on <code>TZ=America/Los_Angeles date +%H</code> in a first job.</td></tr>
+    <tr><td>build secrets</td><td>API tokens live in the private repo's secrets and are passed as <code>BUILD_ENV</code> lines; only the build step sees them. Use read-only tokens scoped to one base or resource.</td></tr>
     <tr><td>new password</td><td>Replace the repo secret, re-run its workflow, update the password manager. The old one stops working.</td></tr>
     <tr><td>unregister</td><td>Remove from <code>registry.json</code>; delete branch <code>site/&lt;repo&gt;</code> and its deploy key.</td></tr>
     <tr><td>failed publish</td><td>Check the private repo's Actions log (private). Deploy errors are in this repo's Actions log; they never contain page content.</td></tr>

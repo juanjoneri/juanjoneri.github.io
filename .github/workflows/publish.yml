@@ -11,6 +11,7 @@ name: publish
 #       secrets:
 #         STATICRYPT_PASSWORD: ${{ secrets.STATICRYPT_PASSWORD }}
 #         HUB_DEPLOY_KEY: ${{ secrets.HUB_DEPLOY_KEY }}
+#         BUILD_ENV: AIRTABLE_TOKEN=${{ secrets.AIRTABLE_TOKEN }}   # optional, build step only
 
 on:
   workflow_call:
@@ -32,6 +33,9 @@ on:
         required: true
       HUB_DEPLOY_KEY:
         required: true
+      BUILD_ENV:
+        description: Optional KEY=VALUE lines exported to the build step only (e.g. API tokens)
+        required: false
 
 permissions:
   contents: read
@@ -62,7 +66,15 @@ jobs:
         run: echo "SLUG=${GITHUB_REPOSITORY#*/}" >> "$GITHUB_ENV"
 
       - name: Build
-        run: ${{ inputs.build }}
+        env:
+          BUILD_ENV: ${{ secrets.BUILD_ENV }}
+          BUILD_CMD: ${{ inputs.build }}
+        run: |
+          while IFS= read -r line; do
+            [ -n "$line" ] && export "$line"
+          done <<< "$BUILD_ENV"
+          unset BUILD_ENV
+          eval "$BUILD_CMD"
 
       - name: Encrypt
         env:
