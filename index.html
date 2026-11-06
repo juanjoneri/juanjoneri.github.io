@@ -15,6 +15,7 @@
   ol { padding-left: 20px; margin: 0 0 12px; } li { margin-bottom: 6px; }
   .toc { display: flex; flex-wrap: wrap; gap: 4px 14px; }
   .toc a { white-space: nowrap; }
+  @media (max-width: 560px) { .hide-sm { display: none; } }
   .demo { border: 1px dashed var(--line); border-radius: var(--radius); padding: 16px; margin: 0 0 12px; }
 </style>
 </head>
@@ -27,7 +28,14 @@
 
   <h1>How pages on this site are made</h1>
   <p class="muted">Private repos hold the data and the logic. This repo holds the rules, the shared style, and encrypted output only. Every private page lives at <code>/p/&lt;private-repo-name&gt;/</code>.</p>
-  <p class="toc"><a href="#flow">flow</a><a href="#rules">rules</a><a href="#register">register</a><a href="#contract">page contract</a><a href="#style">style</a><a href="#ops">operations</a></p>
+  <p class="toc"><a href="#sites">sites</a><a href="#flow">flow</a><a href="#rules">rules</a><a href="#register">register</a><a href="#contract">page contract</a><a href="#style">style</a><a href="#ops">operations</a></p>
+
+  <h2 id="sites"><span class="label">sites</span></h2>
+  <table>
+    <tr><th>site</th><th class="hide-sm">path</th><th class="num">updated</th></tr>
+<!-- SITES -->
+  </table>
+  <p class="muted">🔒 each site has its own password.</p>
 
   <h2 id="flow"><span class="label">flow</span></h2>
 <pre class="flow">private repo (e.g. net-worth)                 juanjoneri.github.io (public)
@@ -48,12 +56,12 @@ data + build script
     <tr><td>2</td><td>Pages show <b>aggregates</b>: totals, trends, categories. No account numbers, card digits, addresses, emails or phone numbers. People by first name or nickname only.</td></tr>
     <tr><td>3</td><td>Every private page is encrypted. Nothing private is ever committed to this repo in plaintext.</td></tr>
     <tr><td>4</td><td>One password per site, stored in the password manager and as that repo's <code>STATICRYPT_PASSWORD</code> secret. 6+ random words.</td></tr>
-    <tr><td>5</td><td>Private sites are not listed on this page. You reach them by URL.</td></tr>
+    <tr><td>5</td><td>Site names and paths are public (they are in <code>registry.json</code>), so pick repo names and titles that reveal nothing on their own.</td></tr>
   </table>
 
   <h2 id="register"><span class="label">register a private repo</span></h2>
   <ol>
-    <li>Add <code>{ "slug": "&lt;repo-name&gt;", "repo": "juanjoneri/&lt;repo-name&gt;" }</code> to <code>registry.json</code> here.</li>
+    <li>Add <code>{ "slug": "&lt;repo-name&gt;", "repo": "juanjoneri/&lt;repo-name&gt;", "title": "&lt;label&gt;" }</code> to <code>registry.json</code> here. The title is shown publicly in the sites table above.</li>
     <li>Generate a password in the password manager → private repo → <b>Settings → Secrets → Actions</b> → <code>STATICRYPT_PASSWORD</code>.</li>
     <li>Make a deploy key on your machine:
 <pre>ssh-keygen -t ed25519 -N "" -C "&lt;repo-name&gt; → hub" -f hub_key</pre>

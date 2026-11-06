@@ -2,11 +2,13 @@
   "sites": [
     {
       "slug": "github-pages",
-      "repo": "juanjoneri/github-pages"
+      "repo": "juanjoneri/github-pages",
+      "title": "Test page"
     },
     {
       "slug": "airtable-debts",
-      "repo": "juanjoneri/airtable-debts"
+      "repo": "juanjoneri/airtable-debts",
+      "title": "Debts"
     }
   ]
 }
