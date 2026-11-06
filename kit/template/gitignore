@@ -1,0 +1,8 @@
+# --- private-project standard (append to .gitignore) ---
+# raw.db / state.db: saved encrypted to the `state` branch by `sitekit save`
+state/
+# local checkout of the `state` branch
+.state-branch/
+dist/
+_encrypted/
+.hub/

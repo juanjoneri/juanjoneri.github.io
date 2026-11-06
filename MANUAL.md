@@ -3,7 +3,8 @@
 How pages on https://juanjoneri.github.io are made. Private repos hold the data and the logic; this repo holds the
 rules, the shared style, the publishing tooling, and encrypted output only (on `site/*` branches). Every private page
 lives at `/p/<private-repo-name>/`. The landing page only lists the sites; everything else is documented here.
-Rules for agents: [`CLAUDE.md`](CLAUDE.md).
+Rules for agents: [`CLAUDE.md`](CLAUDE.md). How each private project is structured, keeps its state and reports its
+health: [`STANDARD.md`](STANDARD.md).
 
 ## Flow
 
@@ -72,7 +73,8 @@ Nothing encrypted is committed to `master`, so changing a password fully retires
 | entry | `dist/index.html` is required. |
 | subpages | Any `dist/**/*.html`. `dist/q3/index.html` → `/p/<repo>/q3/`. Link with relative paths. |
 | files | **Only .html.** Inline CSS, JS, SVG charts and images (data URIs). Anything else would be published unencrypted, so the build fails. |
-| shared | May reference public `/assets/style.css` and `/assets/favicon.svg`. No third-party scripts. |
+| shared | May reference public `/assets/style.css`, `/assets/favicon.svg` and `/assets/status.js`. No third-party scripts. |
+| status | Every page includes the status block (`STANDARD.md` §7.3); job health shows inside the encrypted page only. |
 | title | The repo name in title case, everywhere: `airtable-debts` → **Airtable Debts** (landing page, unlock screen, browser tab, page `<title>` and heading). Subpages: `Airtable Debts · Details`. |
 | head | `<meta name="robots" content="noindex, nofollow">` |
 | unlock | One password per site. "Remember for 30 days" covers all subpages of that site. |

@@ -31,6 +31,10 @@ on:
         description: Hub commit to take scripts, template and staticrypt lockfile from (use the same SHA as in `uses:`)
         type: string
         default: master
+      job:
+        description: Name of the site.json job this run performs (a GitHub Actions job); recorded as ok in status.json
+        type: string
+        default: ""
     secrets:
       STATICRYPT_PASSWORD:
         required: true
@@ -65,6 +69,7 @@ jobs:
           persist-credentials: false
           sparse-checkout: |
             assets
+            kit
             .github/scripts
             .github/staticrypt
 
@@ -85,10 +90,21 @@ jobs:
           unset BUILD_ENV
           eval "$BUILD_CMD"
 
+      - name: Status (reporting)
+        env:
+          JOB: ${{ inputs.job }}
+        run: |
+          # An Actions job that got this far succeeded: record it. Mac jobs commit their own status.json.
+          if [ -n "$JOB" ] && [ -f site.json ]; then python3 .hub/kit/sitekit.py report "$JOB" --ok; fi
+          # Details go INTO the pages before encryption; only a failed/ok_until summary is published.
+          if [ -f status.json ]; then python3 .hub/.github/scripts/status_publish.py status.json "$DIST" "$RUNNER_TEMP/public"; fi
+
       - name: Encrypt
         env:
           STATICRYPT_PASSWORD: ${{ secrets.STATICRYPT_PASSWORD }}
-        run: bash .hub/.github/scripts/encrypt.sh
+        run: |
+          bash .hub/.github/scripts/encrypt.sh
+          if [ -f "$RUNNER_TEMP/public/status.json" ]; then cp "$RUNNER_TEMP/public/status.json" "$OUT/status.json"; fi
 
       - name: Remove plaintext
         run: rm -rf "$DIST"

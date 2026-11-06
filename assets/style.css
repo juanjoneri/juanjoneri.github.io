@@ -55,3 +55,10 @@ td.good { color: var(--good); } td.warn { color: var(--warn); } td.bad { color: 
 .bar { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 24px; }
 .bar a { color: var(--muted); text-decoration: none; }
 .bar a:hover { color: var(--accent); }
+
+/* reporting (STANDARD.md §7): status line on every page, status column on the landing page */
+.site-status { font-size: 11px; color: var(--muted); border: 1px dashed var(--line); border-radius: var(--radius); padding: 6px 10px; margin: 0 0 16px; }
+.site-status.status-ok { border-style: none; padding: 0; }
+.status-stale, .status-reminder, td.status-stale, td.status-reminder { color: var(--warn); }
+.status-failed, td.status-failed { color: var(--bad); }
+.status-ok, td.status-ok { color: var(--muted); }

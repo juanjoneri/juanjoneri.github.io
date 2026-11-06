@@ -10,4 +10,6 @@ Public hub for https://juanjoneri.github.io. The landing page only lists the sit
 - `master` is protected: changes go through pull requests.
 - The 2018 portfolio is kept in [`archive/`](archive/) for posterity; it is not deployed.
 
+- Every private project follows [`STANDARD.md`](STANDARD.md) (shared tooling in `kit/`).
+
 See `CLAUDE.md` for the rules.
