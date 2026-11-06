@@ -13,6 +13,7 @@ touch "$OUT/.nojekyll"
 
 # Registered sites. Branches not in registry.json are never published.
 REQUIRE_SIG=$(jq -r '.require_signatures // false' registry.json)
+rm -rf _status
 ROWS=""
 for slug in $(jq -r '.sites[].slug' registry.json); do
   if [[ ! "$slug" =~ ^[A-Za-z0-9._-]+$ ]]; then echo "::error::invalid slug '$slug'"; continue; fi
@@ -28,7 +29,7 @@ for slug in $(jq -r '.sites[].slug' registry.json); do
     if ! ssh-keygen -Y verify -q -f "$tmp.signers" -I "$slug" -n juanjoneri-site -s "$tmp/_site.manifest.sig" < "$tmp/_site.manifest" >/dev/null 2>&1 \
        || [ "$(head -1 "$tmp/_site.manifest")" != "slug: $slug" ] \
        || ! (cd "$tmp" && tail -n +2 _site.manifest | sha256sum -c --strict --quiet) \
-       || [ "$(tail -n +2 "$tmp/_site.manifest" | sed 's/^[0-9a-f]*  //' | LC_ALL=C sort)" != "$(cd "$tmp" && find . -type f -name '*.html' | LC_ALL=C sort)" ]; then
+       || [ "$(tail -n +2 "$tmp/_site.manifest" | sed 's/^[0-9a-f]*  //' | LC_ALL=C sort)" != "$(cd "$tmp" && find . -type f \( -name '*.html' -o -path ./status.json \) | LC_ALL=C sort)" ]; then
       echo "::error::$slug rejected — bad signature or manifest"; continue
     fi
     signed=" signed"
@@ -39,8 +40,15 @@ for slug in $(jq -r '.sites[].slug' registry.json); do
   fi
   rm -f "$tmp/_site.manifest" "$tmp/_site.manifest.sig"
   rm -f "$tmp/.github/workflows/kick.yml" && rmdir "$tmp/.github/workflows" "$tmp/.github" 2>/dev/null || true   # deploy trigger, not content
-  # Only regular .html files and directories are allowed (no symlinks, devices, or other file types).
-  non_html=$(cd "$tmp" && find . ! -type d ! \( -type f -name '*.html' \))
+  # Reporting: an optional, signed public summary status.json {failed, ok_until} for the landing page's warning sign.
+  # Job details live only inside the encrypted pages. Anything else is dropped, never published.
+  if [ -f "$tmp/status.json" ]; then
+    if ! python3 .github/scripts/status_check.py --public "$tmp/status.json" "$slug"; then
+      echo "::warning::$slug status.json is invalid; not published"; rm -f "$tmp/status.json"
+    fi
+  fi
+  # Only regular .html files (+ status.json) and directories are allowed (no symlinks, devices, or other file types).
+  non_html=$(cd "$tmp" && find . ! -type d ! \( -type f -name '*.html' \) ! \( -type f -path ./status.json \))
   html=$(cd "$tmp" && find . -type f -name '*.html')
   plain=""
   for f in $html; do grep -q "$MARKER" "$tmp/$f" || plain="$plain $f"; done
@@ -48,21 +56,26 @@ for slug in $(jq -r '.sites[].slug' registry.json); do
     echo "::error::$slug rejected — non-HTML files: [${non_html//$'\n'/ }] unencrypted HTML: [$plain]"; continue
   fi
   mkdir -p "$OUT/p/$slug" && cp -r "$tmp"/. "$OUT/p/$slug/"
+  [ -f "$tmp/status.json" ] && mkdir -p _status && cp "$tmp/status.json" "_status/$slug.json"
   echo "✓ /p/$slug ($(echo "$html" | wc -l) page(s))$signed"
   title=$(echo "$slug" | sed -E 's/[-_.]+/ /g; s/\b(.)/\u\1/g')   # repo name in title case: airtable-debts → Airtable Debts
   ts=$(git log -1 --format=%cI "origin/site/$slug")
   when=$([ -n "$ts" ] && TZ=America/Los_Angeles date -d "$ts" '+%b %-d, %-I:%M %p' || echo "—")
-  ROWS+="    <tr><td>🔒 <a href=\"/p/$slug/\">$title</a></td><td class=\"hide-sm muted\">/p/$slug/</td><td class=\"num muted\">$when</td></tr>"$'\n'
+  ROWS+="    <tr><td>🔒 <a href=\"/p/$slug/\">$title</a></td><td class=\"hide-sm muted\">/p/$slug/</td><td class=\"num muted\">$when</td><td class=\"num\" data-status-slug=\"$slug\">—</td></tr>"$'\n'
 done
 
 # Deploy state written by deploy.yml (master + site branch SHAs); published so the next run can skip if unchanged.
 [ -f .deploy-state ] && cp .deploy-state "$OUT/deploy-state.txt"
 
 # Fill the landing page's sites table.
-[ -n "$ROWS" ] || ROWS='    <tr><td colspan="3" class="muted">no sites published yet</td></tr>'$'\n'
+[ -n "$ROWS" ] || ROWS='    <tr><td colspan="4" class="muted">no sites published yet</td></tr>'$'\n'
 python3 - "$OUT/index.html" "$ROWS" <<'PY'
-import sys
+import glob, json, os, sys
 p, rows = sys.argv[1], sys.argv[2]
-s = open(p).read()
-open(p, "w").write(s.replace("<!-- SITES -->", rows.rstrip("\n")))
+status = {os.path.basename(f)[:-5]: json.load(open(f)) for f in sorted(glob.glob("_status/*.json"))}
+blob = json.dumps(status, sort_keys=True).replace("</", "<\\/")
+s = open(p).read().replace("<!-- SITES -->", rows.rstrip("\n"))
+s = s.replace("<!-- STATUS -->", f'<script type="application/json" id="site-status">{blob}</script>')
+open(p, "w").write(s)
 PY
+rm -rf _status

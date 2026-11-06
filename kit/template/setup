@@ -1,0 +1,3 @@
+#!/bin/bash
+# Standard entry point (STANDARD.md). The logic lives in .kit/sitekit.py, driven by site.json.
+exec python3 "$(dirname "$0")/.kit/sitekit.py" setup "$@"

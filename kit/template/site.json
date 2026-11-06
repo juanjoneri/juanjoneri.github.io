@@ -1,0 +1,52 @@
+{
+  "slug": "example-project",
+  "repo": "juanjoneri/example-project",
+  "kit": "<hub commit sha this .kit/sitekit.py came from>",
+  "setup": [
+    "python3 -m venv .venv",
+    ".venv/bin/pip install -q -r requirements.txt"
+  ],
+  "tools": [
+    {"cmd": "python3", "match": "Python 3\\.(9|1[0-9])", "fix": "xcode-select --install  (Linux: apt install python3)"}
+  ],
+  "secrets": [
+    {"name": "EXAMPLE_API_TOKEN", "where": "keychain", "jobs": ["pull"], "fix": "read-only token from the provider's settings"},
+    {"name": "STATICRYPT_PASSWORD", "where": "actions"},
+    {"name": "HUB_DEPLOY_KEY", "where": "actions"}
+  ],
+  "state": {
+    "raw_db": "state/raw.db",
+    "state_db": "state/state.db",
+    "warm": [],
+    "exclude": [],
+    "recipient": "<age1… written by `sitekit keygen`>"
+  },
+  "jobs": [
+    {
+      "name": "pull",
+      "runs_on": "mac",
+      "command": ".venv/bin/python -m example.pull && .venv/bin/python build.py",
+      "offline_command": ".venv/bin/python build.py --offline",
+      "outputs": ["site/index.html"],
+      "secrets": ["EXAMPLE_API_TOKEN"],
+      "schedule": [{"cron": "0 7,19 * * *", "tz": "America/Los_Angeles"}],
+      "freshness": {"mode": "alert", "grace_minutes": 90},
+      "launch": "direct"
+    },
+    {
+      "name": "publish",
+      "runs_on": "actions",
+      "schedule": [{"cron": "17 9 * * 1", "tz": "UTC"}],
+      "freshness": {"mode": "alert", "grace_minutes": 180}
+    }
+  ],
+  "build_offline": ".venv/bin/python build.py --offline",
+  "checks": [
+    {"name": "provider API reachable", "cmd": ".venv/bin/python -m example.ping", "on": "mac", "slow": true, "fix": "check EXAMPLE_API_TOKEN"}
+  ],
+  "manual": [
+    "Install <app> and sign in",
+    "System Settings > Privacy & Security > Full Disk Access: allow Terminal (only if a job uses \"launch\": \"terminal\")"
+  ],
+  "mac_paths_ok": []
+}

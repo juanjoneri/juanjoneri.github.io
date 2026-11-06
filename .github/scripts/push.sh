@@ -16,7 +16,7 @@ REMOTE="git@github.com:$HUB.git"
 # Signed manifest: the slug plus the sha256 of every file. The hub only deploys a site whose manifest was signed
 # by the key registered for that slug, so one site's key cannot publish another site's pages.
 cd "$OUT"
-{ echo "slug: $SLUG"; find . -type f -name '*.html' | LC_ALL=C sort | xargs -d '\n' sha256sum; } > _site.manifest
+{ echo "slug: $SLUG"; find . -type f \( -name '*.html' -o -path ./status.json \) | LC_ALL=C sort | xargs -d '\n' sha256sum; } > _site.manifest
 ssh-keygen -Y sign -q -f ~/.ssh/hub -n juanjoneri-site _site.manifest
 echo "signing key (public, for registry.json): $(ssh-keygen -y -f ~/.ssh/hub | cut -d' ' -f1-2)"
 
