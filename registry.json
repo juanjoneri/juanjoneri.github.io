@@ -1,16 +1,20 @@
 {
+  "require_signatures": true,
   "sites": [
     {
       "slug": "github-pages",
-      "repo": "juanjoneri/github-pages"
+      "repo": "juanjoneri/github-pages",
+      "key": "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAKrz97MH7EP4yPzK9R/cspgOttEeeZCrEpl2bGqtpi/"
     },
     {
       "slug": "airtable-debts",
-      "repo": "juanjoneri/airtable-debts"
+      "repo": "juanjoneri/airtable-debts",
+      "key": "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJ5IxQ7n0Y6amdaFiKDgWbDo0FFkSRPAKN05YCWyjEd+"
     },
     {
       "slug": "purchase-receipts",
-      "repo": "juanjoneri/purchase-receipts"
+      "repo": "juanjoneri/purchase-receipts",
+      "key": "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGncvvmmPeWIBgtLQbaevCKdhteHVgQbvlzKqWVYze6H"
     }
   ]
 }
