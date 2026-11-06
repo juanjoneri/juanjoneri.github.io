@@ -75,9 +75,10 @@ on:
   schedule: [{ cron: "17 9 * * 1" }]   # cadence
 jobs:
   publish:
-    uses: juanjoneri/juanjoneri.github.io/.github/workflows/publish.yml@master
+    uses: juanjoneri/juanjoneri.github.io/.github/workflows/publish.yml@&lt;sha&gt;   # pin to a reviewed hub commit
     with:
       build: bash build.sh      # must write plain HTML into dist/
+      hub_ref: &lt;same sha&gt;      # scripts, template and lockfile from the same commit
     secrets:
       STATICRYPT_PASSWORD: ${{ secrets.STATICRYPT_PASSWORD }}
       HUB_DEPLOY_KEY: ${{ secrets.HUB_DEPLOY_KEY }}

@@ -19,7 +19,8 @@ for slug in $(jq -r '.sites[].slug' registry.json); do
   fi
   tmp=$(mktemp -d)
   git archive "origin/site/$slug" | tar -x -C "$tmp"
-  non_html=$(cd "$tmp" && find . -type f ! -name '*.html')
+  # Only regular .html files and directories are allowed (no symlinks, devices, or other file types).
+  non_html=$(cd "$tmp" && find . ! -type d ! \( -type f -name '*.html' \))
   html=$(cd "$tmp" && find . -type f -name '*.html')
   plain=""
   for f in $html; do grep -q "$MARKER" "$tmp/$f" || plain="$plain $f"; done

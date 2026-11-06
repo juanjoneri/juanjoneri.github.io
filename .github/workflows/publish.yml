@@ -1,13 +1,16 @@
 name: publish
 
-# Reusable workflow, called from a private repo. Runs entirely inside the CALLER (private) repo:
-# build → encrypt → push to site/<repo-name> on the hub. Plaintext and logs never leave the private repo.
+# Reusable workflow, called from a private repo. Runs entirely inside the CALLER (private) repo.
+#   job "build": build → encrypt. Sees plaintext, the build secrets and STATICRYPT_PASSWORD. Never sees the deploy key.
+#   job "push":  pushes the encrypted output to site/<repo-name> on the hub. Sees only the deploy key; runs no repo code.
+# Plaintext and logs never leave the private repo.
 #
-# Caller example (.github/workflows/site.yml in the private repo):
+# Callers pin BOTH the workflow and the tooling to the same reviewed hub commit, so a later push to the
+# hub's master cannot change what runs next to their secrets:
 #   jobs:
 #     publish:
-#       uses: juanjoneri/juanjoneri.github.io/.github/workflows/publish.yml@master
-#       with: { build: "bash build.sh" }
+#       uses: juanjoneri/juanjoneri.github.io/.github/workflows/publish.yml@<sha>
+#       with: { build: "python3 build.py", hub_ref: "<same sha>" }
 #       secrets:
 #         STATICRYPT_PASSWORD: ${{ secrets.STATICRYPT_PASSWORD }}
 #         HUB_DEPLOY_KEY: ${{ secrets.HUB_DEPLOY_KEY }}
@@ -24,6 +27,10 @@ on:
         description: Output directory of the build
         type: string
         default: dist
+      hub_ref:
+        description: Hub commit to take scripts, template and staticrypt lockfile from (use the same SHA as in `uses:`)
+        type: string
+        default: master
     secrets:
       STATICRYPT_PASSWORD:
         required: true
@@ -37,25 +44,32 @@ permissions:
   contents: read
 
 jobs:
-  publish:
+  build:
     runs-on: ubuntu-latest
     env:
-      HUB: juanjoneri/juanjoneri.github.io
       DIST: ${{ inputs.dist }}
       OUT: ${{ github.workspace }}/.encrypted
       TEMPLATE: ${{ github.workspace }}/.hub/assets/unlock.html
+      STATICRYPT_BIN: ${{ github.workspace }}/.hub/.github/staticrypt/node_modules/.bin/staticrypt
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
+        with:
+          persist-credentials: false
 
       - name: Fetch hub tooling
         uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
         with:
           repository: juanjoneri/juanjoneri.github.io
-          ref: master
+          ref: ${{ inputs.hub_ref }}
           path: .hub
+          persist-credentials: false
           sparse-checkout: |
             assets
             .github/scripts
+            .github/staticrypt
+
+      - name: Install staticrypt (lockfile, no install scripts)
+        run: npm ci --ignore-scripts --no-audit --no-fund --prefix .hub/.github/staticrypt
 
       - name: Slug
         run: echo "SLUG=${GITHUB_REPOSITORY#*/}" >> "$GITHUB_ENV"
@@ -78,6 +92,37 @@ jobs:
 
       - name: Remove plaintext
         run: rm -rf "$DIST"
+
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: encrypted
+          path: .encrypted
+          retention-days: 1
+          if-no-files-found: error
+
+  push:
+    needs: build
+    runs-on: ubuntu-latest
+    env:
+      HUB: juanjoneri/juanjoneri.github.io
+      OUT: ${{ github.workspace }}/.encrypted
+    steps:
+      - name: Fetch hub tooling
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
+        with:
+          repository: juanjoneri/juanjoneri.github.io
+          ref: ${{ inputs.hub_ref }}
+          path: .hub
+          persist-credentials: false
+          sparse-checkout: .github/scripts
+
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: encrypted
+          path: .encrypted
+
+      - name: Slug
+        run: echo "SLUG=${GITHUB_REPOSITORY#*/}" >> "$GITHUB_ENV"
 
       - name: Push to hub
         env:

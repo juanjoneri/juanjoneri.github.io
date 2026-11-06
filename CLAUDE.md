@@ -8,7 +8,8 @@ The human-readable manual is `index.html` (served at https://juanjoneri.github.i
 - `assets/style.css` — shared tokens and components. `assets/unlock.html` — StatiCrypt template. `assets/favicon.svg`.
 - `registry.json` — allowlist of private sites (`slug` = private repo name). Only these are deployed and listed.
 - `sites.lock.json` — last publish per site, written by private repos; pushing it triggers deploy.
-- `.github/workflows/publish.yml` — reusable workflow private repos call (build → encrypt → push `site/<slug>`).
+- `.github/workflows/publish.yml` — reusable workflow private repos call. Job `build` (build → encrypt; never sees the deploy key) and job `push` (push `site/<slug>`; runs no repo code).
+- `.github/staticrypt/` — package.json + lockfile; installed with `npm ci --ignore-scripts`.
 - `.github/workflows/deploy.yml` + `.github/scripts/assemble.sh` — builds Pages from master + `site/*` branches.
 - `archive/` — 2018 portfolio. Leave as is.
 
@@ -16,6 +17,9 @@ The human-readable manual is `index.html` (served at https://juanjoneri.github.i
 1. Never commit plaintext private content, or anything derived from private data, to this repo. Encrypted output goes only to `site/<slug>` branches, and only via publish.yml.
 2. Never print, log, or echo secrets (`STATICRYPT_PASSWORD`, `HUB_DEPLOY_KEY`) or page content in workflows here or in private repos.
 3. Pin every third-party Action to a full commit SHA with the version in a comment.
+5. Private repos pin the hub to one reviewed commit: `uses: …/publish.yml@<sha>` **and** `hub_ref: <same sha>`. After changing hub tooling (`publish.yml`, `.github/scripts`, `.github/staticrypt`, `assets/unlock.html`), bump that SHA in every private repo's `site.yml`.
+6. `archive/` must not load third-party scripts; vendor them under `archive/vendor/`. Every page on this origin can read every site's "remember me" key.
+7. Site branches may contain only regular `.html` files; `assemble.sh` rejects symlinks and anything else.
 4. Site slugs and titles are public (registry, landing page, branch names). Never put sensitive details in a repo name.
 
 ## Building a page in a private repo

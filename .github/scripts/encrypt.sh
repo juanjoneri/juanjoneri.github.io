@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Encrypt every HTML file in $DIST into $OUT, preserving paths. Called by publish.yml.
 set -euo pipefail
-: "${SLUG:?}" "${DIST:?}" "${OUT:?}" "${TEMPLATE:?}"
+: "${SLUG:?}" "${DIST:?}" "${OUT:?}" "${TEMPLATE:?}" "${STATICRYPT_BIN:?}"
 [ -n "${STATICRYPT_PASSWORD:-}" ] || { echo "::error::STATICRYPT_PASSWORD secret is missing in this repo"; exit 1; }
 # Page title = repo name in title case (airtable-debts → Airtable Debts). Shown on the unlock screen and browser tab.
 TITLE=$(echo "$SLUG" | sed -E 's/[-_.]+/ /g; s/\b(.)/\u\1/g')
@@ -19,7 +19,7 @@ OUT=$(cd "$OUT" && pwd)
 cd "$DIST"
 find . -type f -name '*.html' | sort | while read -r f; do
   d="$OUT/$(dirname "$f")"; mkdir -p "$d"
-  npx --yes staticrypt@3.5.4 "$f" -d "$d" -c false --short \
+  "$STATICRYPT_BIN" "$f" -d "$d" -c false --short \
     --salt "$SALT" --remember 30 -t "$TEMPLATE" \
     --template-title "$TITLE" \
     --template-instructions "Private page. Password is in the password manager." \
