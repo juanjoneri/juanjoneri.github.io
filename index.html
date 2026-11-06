@@ -3,172 +3,23 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>juanjoneri.github.io — manual</title>
-<meta name="description" content="How pages on juanjoneri.github.io are built, encrypted and styled.">
+<title>juanjoneri.github.io</title>
+<meta name="robots" content="noindex, nofollow">
 <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="/assets/style.css">
 <style>
-  .flow { font-size: 12px; line-height: 1.5; }
-  .swatches { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; margin: 0 0 12px; }
-  .sw { display: flex; align-items: center; gap: 8px; font-size: 12px; }
-  .sw i { width: 18px; height: 18px; border-radius: var(--radius); border: 1px solid var(--line); flex: none; }
-  ol { padding-left: 20px; margin: 0 0 12px; } li { margin-bottom: 6px; }
-  .toc { display: flex; flex-wrap: wrap; gap: 4px 14px; }
-  .toc a { white-space: nowrap; }
   @media (max-width: 560px) { .hide-sm { display: none; } }
-  .demo { border: 1px dashed var(--line); border-radius: var(--radius); padding: 16px; margin: 0 0 12px; }
 </style>
 </head>
 <body>
 <main>
-  <div class="bar">
-    <span class="label">juanjoneri.github.io · manual v1</span>
-    <a href="/archive/">2018 site →</a>
-  </div>
-
-  <h1>How pages on this site are made</h1>
-  <p class="muted">Private repos hold the data and the logic. This repo holds the rules, the shared style, and encrypted output only. Every private page lives at <code>/p/&lt;private-repo-name&gt;/</code>.</p>
-  <p class="toc"><a href="#sites">sites</a><a href="#flow">flow</a><a href="#rules">rules</a><a href="#register">register</a><a href="#contract">page contract</a><a href="#style">style</a><a href="#ops">operations</a></p>
-
-  <h2 id="sites"><span class="label">sites</span></h2>
+  <div class="label">juanjoneri.github.io</div>
+  <h1>Sites</h1>
   <table>
     <tr><th>site</th><th class="hide-sm">path</th><th class="num">updated</th></tr>
 <!-- SITES -->
   </table>
   <p class="muted">🔒 each site has its own password.</p>
-
-  <h2 id="flow"><span class="label">flow</span></h2>
-<pre class="flow">private repo (e.g. net-worth)                 juanjoneri.github.io (public)
-─────────────────────────────                 ─────────────────────────────
-data + build script
-   │ build             → dist/**/*.html  (plaintext, never leaves the runner)
-   │ encrypt (staticrypt, per-site password)
-   │ sign (deploy key)
-   └ force-push        ─────────────────▶  branch site/net-worth   (latest copy only)
-                                              │ deploy workflow, every 10 min if changed
-                                              ▼  only slugs in registry.json, signature checked
-                                           /p/net-worth/…  (GitHub Pages)</pre>
-  <p class="muted">Nothing encrypted is committed to <code>master</code>, so changing a password fully retires the old one.</p>
-
-  <h2 id="rules"><span class="label">rules</span></h2>
-  <table>
-    <tr><td>1</td><td>Raw data, credentials and business logic stay in the private repo.</td></tr>
-    <tr><td>2</td><td>Pages show <b>aggregates</b>: totals, trends, categories. No account numbers, card digits, addresses, emails or phone numbers. People by first name or nickname only.</td></tr>
-    <tr><td>3</td><td>Every private page is encrypted. Nothing private is ever committed to this repo in plaintext.</td></tr>
-    <tr><td>4</td><td>One password per site, stored in the password manager and as that repo's <code>STATICRYPT_PASSWORD</code> secret. 6+ random words.</td></tr>
-    <tr><td>5</td><td>Site names and paths are public (they are in <code>registry.json</code>), so pick repo names and titles that reveal nothing on their own.</td></tr>
-  </table>
-
-  <h2 id="register"><span class="label">register a private repo</span></h2>
-  <ol>
-    <li>Add <code>{ "slug": "&lt;repo-name&gt;", "repo": "juanjoneri/&lt;repo-name&gt;", "key": "ssh-ed25519 …" }</code> to <code>registry.json</code> here (by PR: <code>master</code> is protected). The key is printed in the private repo's first publish log as "signing key".</li>
-    <li>Generate a password in the password manager → private repo → <b>Settings → Secrets → Actions</b> → <code>STATICRYPT_PASSWORD</code>.</li>
-    <li>Make a deploy key on your machine:
-<pre>ssh-keygen -t ed25519 -N "" -C "&lt;repo-name&gt; → hub" -f hub_key</pre>
-      <code>hub_key.pub</code> → this repo → <b>Settings → Deploy keys</b> (allow write).<br>
-      <code>hub_key</code> → private repo secret <code>HUB_DEPLOY_KEY</code>. Then delete both files.</li>
-    <li>In the private repo, add a build script and <code>.github/workflows/site.yml</code>:
-<pre>name: site
-on:
-  push: { branches: [main] }
-  workflow_dispatch:
-  schedule: [{ cron: "17 9 * * 1" }]   # cadence
-jobs:
-  publish:
-    uses: juanjoneri/juanjoneri.github.io/.github/workflows/publish.yml@&lt;sha&gt;   # pin to a reviewed hub commit
-    with:
-      build: bash build.sh      # must write plain HTML into dist/
-      hub_ref: &lt;same sha&gt;      # scripts, template and lockfile from the same commit
-    secrets:
-      STATICRYPT_PASSWORD: ${{ secrets.STATICRYPT_PASSWORD }}
-      HUB_DEPLOY_KEY: ${{ secrets.HUB_DEPLOY_KEY }}
-      BUILD_ENV: API_TOKEN=${{ secrets.API_TOKEN }}   # optional: secrets for the build step only</pre></li>
-    <li>Push. The first publish prints the site's <b>signing key</b> in its push-job log; put it in <code>registry.json</code> (step 1). Until the key is registered the site is signed but not deployed. After that, every publish appears at <code>/p/&lt;repo-name&gt;/</code> within about 10 minutes.</li>
-  </ol>
-
-  <h2 id="contract"><span class="label">page contract</span></h2>
-  <table>
-    <tr><td>entry</td><td><code>dist/index.html</code> is required.</td></tr>
-    <tr><td>subpages</td><td>Any <code>dist/**/*.html</code>. <code>dist/q3/index.html</code> → <code>/p/&lt;repo&gt;/q3/</code>. Link with relative paths.</td></tr>
-    <tr><td>files</td><td><b>Only .html.</b> Inline CSS, JS, SVG charts and images (data URIs). Anything else would be published unencrypted, so the build fails.</td></tr>
-    <tr><td>shared</td><td>May reference public <code>/assets/style.css</code> and <code>/assets/favicon.svg</code>.</td></tr>
-    <tr><td>title</td><td>The repo name in title case, everywhere: <code>airtable-debts</code> → <b>Airtable Debts</b> (landing page, unlock screen, browser tab, page <code>&lt;title&gt;</code> and heading). Subpages: <code>Airtable Debts · Details</code>.</td></tr>
-    <tr><td>head</td><td><code>&lt;meta name="robots" content="noindex, nofollow"&gt;</code></td></tr>
-    <tr><td>unlock</td><td>One password per site. "Remember for 30 days" covers all subpages of that site.</td></tr>
-    <tr><td>size</td><td>Keep each page under ~2 MB; it is decrypted in the browser.</td></tr>
-  </table>
-
-  <h2 id="style"><span class="label">style</span></h2>
-  <p>Terminal-report look: one monospace font, small sizes, thin and dashed rules, colour only to mean something. Link <code>/assets/style.css</code> to get all of this.</p>
-
-  <h3>type</h3>
-  <table>
-    <tr><td>font</td><td><code>Menlo, Consolas, "Courier New", monospace</code></td></tr>
-    <tr><td>body</td><td>13px / 1.6</td></tr>
-    <tr><td>title</td><td>16px bold</td></tr>
-    <tr><td>label</td><td><span class="label">11px uppercase +1px</span></td></tr>
-    <tr><td>numbers</td><td>right-aligned, <code>tabular-nums</code>, k/M abbreviations (<code>21.2k</code>)</td></tr>
-  </table>
-
-  <h3>colour</h3>
-  <div class="swatches">
-    <div class="sw"><i style="background:var(--bg)"></i>--bg</div>
-    <div class="sw"><i style="background:var(--fg)"></i>--fg</div>
-    <div class="sw"><i style="background:var(--text)"></i>--text</div>
-    <div class="sw"><i style="background:var(--muted)"></i>--muted</div>
-    <div class="sw"><i style="background:var(--line)"></i>--line</div>
-    <div class="sw"><i style="background:var(--accent)"></i>--accent</div>
-    <div class="sw"><i style="background:var(--good)"></i>--good</div>
-    <div class="sw"><i style="background:var(--warn)"></i>--warn</div>
-    <div class="sw"><i style="background:var(--bad)"></i>--bad</div>
-  </div>
-  <p class="muted">Chart series, in order:</p>
-  <div class="swatches">
-    <div class="sw"><i style="background:var(--s1)"></i>--s1</div>
-    <div class="sw"><i style="background:var(--s2)"></i>--s2</div>
-    <div class="sw"><i style="background:var(--s3)"></i>--s3</div>
-    <div class="sw"><i style="background:var(--s4)"></i>--s4</div>
-    <div class="sw"><i style="background:var(--s5)"></i>--s5</div>
-    <div class="sw"><i style="background:var(--s6)"></i>--s6</div>
-    <div class="sw"><i style="background:var(--s7)"></i>--s7</div>
-  </div>
-
-  <h3>components</h3>
-  <div class="demo">
-    <div class="label">summary</div>
-    <div class="kpis" style="margin-top:8px">
-      <div class="kpi"><div class="label">spent</div><div class="v">$3.9k</div><div class="d muted">this week</div></div>
-      <div class="kpi"><div class="label">income</div><div class="v good">+$48</div><div class="d muted">this week</div></div>
-      <div class="kpi"><div class="label">review</div><div class="v warn">⚠ 9</div><div class="d muted">to look at</div></div>
-    </div>
-    <table>
-      <tr><th>category</th><th class="num">week</th><th class="num">Δ</th></tr>
-      <tr><td>groceries</td><td class="num">412</td><td class="num bad">+18%</td></tr>
-      <tr><td>transport</td><td class="num">96</td><td class="num good">−22%</td></tr>
-      <tr><td>status</td><td class="num">✅ up to date</td><td class="num"></td></tr>
-    </table>
-    <a class="btn" href="#style">button</a> <span class="tag">tag</span>
-  </div>
-<pre>&lt;div class="label"&gt;summary&lt;/div&gt;
-&lt;div class="kpis"&gt;&lt;div class="kpi"&gt;&lt;div class="label"&gt;spent&lt;/div&gt;&lt;div class="v"&gt;$3.9k&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;
-&lt;table&gt;&lt;tr&gt;&lt;td&gt;groceries&lt;/td&gt;&lt;td class="num"&gt;412&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</pre>
-  <p class="muted">Status words: ✅ ok · ⚠ needs attention · ⏳ pending / expiring · ✗ failed. Charts: inline SVG, 1–2px strokes, no gridlines beyond a dashed baseline, series colours in order.</p>
-
-  <h2 id="ops"><span class="label">operations</span></h2>
-  <table>
-    <tr><td>cadence</td><td>Each private repo's <code>schedule</code> cron. Manual: Actions → site → Run workflow. Cron is UTC: for local-time windows, schedule both DST hours and gate on <code>TZ=America/Los_Angeles date +%H</code> in a first job.</td></tr>
-    <tr><td>build secrets</td><td>API tokens live in the private repo's secrets and are passed as <code>BUILD_ENV</code> lines; only the build step sees them. Use read-only tokens scoped to one base or resource.</td></tr>
-    <tr><td>go-live delay</td><td>The deploy runs every 10 minutes and only when <code>master</code> or a <code>site/*</code> branch changed. To publish now: this repo → Actions → deploy → Run workflow.</td></tr>
-    <tr><td>hub changes</td><td><code>master</code> is protected: only Juan pushes it; everyone else opens a pull request. After changing <code>publish.yml</code>, <code>.github/scripts</code>, <code>.github/staticrypt</code> or <code>assets/unlock.html</code>, bump the pinned commit (<code>uses: …@&lt;sha&gt;</code> and <code>hub_ref</code>) in every private repo.</td></tr>
-    <tr><td>new deploy key</td><td>Generate a new key, replace the public half under Deploy keys and the private half in the repo's <code>HUB_DEPLOY_KEY</code>, run its workflow, then put the new "signing key" from the log in <code>registry.json</code>.</td></tr>
-    <tr><td>site rejected</td><td>The deploy log says why: "bad signature or manifest" (wrong key, or files changed after signing), "unsigned" (no key in the registry yet), or non-HTML / unencrypted files.</td></tr>
-    <tr><td>new password</td><td>Replace the repo secret, re-run its workflow, update the password manager. The old one stops working.</td></tr>
-    <tr><td>unregister</td><td>Remove it from <code>registry.json</code>; delete the branch <code>site/&lt;repo&gt;</code> and its deploy key.</td></tr>
-    <tr><td>failed publish</td><td>Check the private repo's Actions log (private). Deploy errors are in this repo's Actions log; they never contain page content.</td></tr>
-  </table>
-
-  <hr>
-  <p class="muted">2018 portfolio → <a href="/archive/">/archive</a> · <a href="https://github.com/juanjoneri">github</a></p>
 </main>
 </body>
 </html>
