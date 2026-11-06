@@ -7,7 +7,8 @@ rm -rf "$OUT" && mkdir -p "$OUT"
 
 # Public files = everything tracked on master, minus repo plumbing.
 git archive HEAD | tar -x -C "$OUT"
-rm -rf "$OUT/.github" "$OUT/p" "$OUT/CLAUDE.md" "$OUT/README.md" "$OUT/registry.json" "$OUT/.gitignore" "$OUT/.gitattributes"
+# archive/ (2018 portfolio) is kept in the repo for posterity but not deployed.
+rm -rf "$OUT/.github" "$OUT/p" "$OUT/archive" "$OUT/CLAUDE.md" "$OUT/MANUAL.md" "$OUT/README.md" "$OUT/registry.json" "$OUT/.gitignore" "$OUT/.gitattributes"
 touch "$OUT/.nojekyll"
 
 # Registered sites. Branches not in registry.json are never published.
