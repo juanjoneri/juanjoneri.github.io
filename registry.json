@@ -15,6 +15,11 @@
       "slug": "purchase-receipts",
       "repo": "juanjoneri/purchase-receipts",
       "key": "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGncvvmmPeWIBgtLQbaevCKdhteHVgQbvlzKqWVYze6H"
+    },
+    {
+      "slug": "training-log",
+      "repo": "juanjoneri/training-log",
+      "key": "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJDmiEtB5rv4obPb4LIb+WUPAApzLu9N11NQULrumQ1F"
     }
   ]
 }
