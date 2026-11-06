@@ -17,10 +17,10 @@ The human-readable manual is `index.html` (served at https://juanjoneri.github.i
 1. Never commit plaintext private content, or anything derived from private data, to this repo. Encrypted output goes only to `site/<slug>` branches, and only via publish.yml.
 2. Never print, log, or echo secrets (`STATICRYPT_PASSWORD`, `HUB_DEPLOY_KEY`) or page content in workflows here or in private repos.
 3. Pin every third-party Action to a full commit SHA with the version in a comment.
+4. Site slugs and titles are public (registry, landing page, branch names). Never put sensitive details in a repo name.
 5. Private repos pin the hub to one reviewed commit: `uses: …/publish.yml@<sha>` **and** `hub_ref: <same sha>`. After changing hub tooling (`publish.yml`, `.github/scripts`, `.github/staticrypt`, `assets/unlock.html`), bump that SHA in every private repo's `site.yml`.
 6. `archive/` must not load third-party scripts; vendor them under `archive/vendor/`. Every page on this origin can read every site's "remember me" key.
 7. Site branches may contain only regular `.html` files; `assemble.sh` rejects symlinks and anything else.
-4. Site slugs and titles are public (registry, landing page, branch names). Never put sensitive details in a repo name.
 
 ## Building a page in a private repo
 - Build writes plain HTML to `dist/`; `dist/index.html` required; subpages are any `dist/**/*.html`; links are relative.
