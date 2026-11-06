@@ -61,7 +61,7 @@ data + build script
 
   <h2 id="register"><span class="label">register a private repo</span></h2>
   <ol>
-    <li>Add <code>{ "slug": "&lt;repo-name&gt;", "repo": "juanjoneri/&lt;repo-name&gt;", "title": "&lt;label&gt;" }</code> to <code>registry.json</code> here. The title is shown publicly in the sites table above.</li>
+    <li>Add <code>{ "slug": "&lt;repo-name&gt;", "repo": "juanjoneri/&lt;repo-name&gt;" }</code> to <code>registry.json</code> here.</li>
     <li>Generate a password in the password manager → private repo → <b>Settings → Secrets → Actions</b> → <code>STATICRYPT_PASSWORD</code>.</li>
     <li>Make a deploy key on your machine:
 <pre>ssh-keygen -t ed25519 -N "" -C "&lt;repo-name&gt; → hub" -f hub_key</pre>
@@ -78,7 +78,6 @@ jobs:
     uses: juanjoneri/juanjoneri.github.io/.github/workflows/publish.yml@master
     with:
       build: bash build.sh      # must write plain HTML into dist/
-      title: Net worth          # shown on the unlock screen
     secrets:
       STATICRYPT_PASSWORD: ${{ secrets.STATICRYPT_PASSWORD }}
       HUB_DEPLOY_KEY: ${{ secrets.HUB_DEPLOY_KEY }}
@@ -92,6 +91,7 @@ jobs:
     <tr><td>subpages</td><td>Any <code>dist/**/*.html</code>. <code>dist/q3/index.html</code> → <code>/p/&lt;repo&gt;/q3/</code>. Link with relative paths.</td></tr>
     <tr><td>files</td><td><b>Only .html.</b> Inline CSS, JS, SVG charts and images (data URIs). Anything else would be published unencrypted, so the build fails.</td></tr>
     <tr><td>shared</td><td>May reference public <code>/assets/style.css</code> and <code>/assets/favicon.svg</code>.</td></tr>
+    <tr><td>title</td><td>The repo name in title case, everywhere: <code>airtable-debts</code> → <b>Airtable Debts</b> (landing page, unlock screen, browser tab, page <code>&lt;title&gt;</code> and heading). Subpages: <code>Airtable Debts · Details</code>.</td></tr>
     <tr><td>head</td><td><code>&lt;meta name="robots" content="noindex, nofollow"&gt;</code></td></tr>
     <tr><td>unlock</td><td>One password per site. "Remember for 30 days" covers all subpages of that site.</td></tr>
     <tr><td>size</td><td>Keep each page under ~2 MB; it is decrypted in the browser.</td></tr>

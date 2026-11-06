@@ -3,7 +3,8 @@
 set -euo pipefail
 : "${SLUG:?}" "${DIST:?}" "${OUT:?}" "${TEMPLATE:?}"
 [ -n "${STATICRYPT_PASSWORD:-}" ] || { echo "::error::STATICRYPT_PASSWORD secret is missing in this repo"; exit 1; }
-TITLE=${TITLE:-$SLUG}
+# Page title = repo name in title case (airtable-debts → Airtable Debts). Shown on the unlock screen and browser tab.
+TITLE=$(echo "$SLUG" | sed -E 's/[-_.]+/ /g; s/\b(.)/\u\1/g')
 # Salt: not secret, fixed per site (so "remember me" survives rebuilds), unique per site.
 SALT=$(printf 'juanjoneri.github.io/p/%s' "$SLUG" | sha256sum | cut -c1-32)
 

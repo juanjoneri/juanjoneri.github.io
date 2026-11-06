@@ -28,7 +28,7 @@ for slug in $(jq -r '.sites[].slug' registry.json); do
   fi
   mkdir -p "$OUT/p/$slug" && cp -r "$tmp"/. "$OUT/p/$slug/"
   echo "✓ /p/$slug ($(echo "$html" | wc -l) page(s))"
-  title=$(jq -r --arg s "$slug" '.sites[] | select(.slug == $s) | .title // .slug' registry.json | sed 's/&/\&amp;/g; s/</\&lt;/g; s/>/\&gt;/g')
+  title=$(echo "$slug" | sed -E 's/[-_.]+/ /g; s/\b(.)/\u\1/g')   # repo name in title case: airtable-debts → Airtable Debts
   ts=$(jq -r --arg s "$slug" '.[$s].published_at // empty' sites.lock.json 2>/dev/null || true)
   when=$([ -n "$ts" ] && TZ=America/Los_Angeles date -d "$ts" '+%b %-d, %-I:%M %p' || echo "—")
   ROWS+="    <tr><td>🔒 <a href=\"/p/$slug/\">$title</a></td><td class=\"hide-sm muted\">/p/$slug/</td><td class=\"num muted\">$when</td></tr>"$'\n'
