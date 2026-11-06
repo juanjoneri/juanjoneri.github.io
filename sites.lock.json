@@ -2,5 +2,9 @@
   "github-pages": {
     "source_commit": "798d9cf",
     "published_at": "2026-11-06T03:46:48Z"
+  },
+  "airtable-debts": {
+    "source_commit": "6ed548f",
+    "published_at": "2026-11-06T04:02:28Z"
   }
 }
