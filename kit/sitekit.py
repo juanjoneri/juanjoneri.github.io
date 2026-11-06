@@ -978,8 +978,9 @@ def cmd_setup(a):
     if a.update:
         with tempfile.TemporaryDirectory() as tmp:
             sh(["git", "clone", "-q", "--filter=blob:none", "--no-checkout", f"https://github.com/{HUB}.git", tmp])
-            sh(["git", "checkout", "-q", a.update, "--", "kit/sitekit.py"], cwd=tmp)
-            sha = git("rev-parse", a.update, cwd=tmp)
+            sh(["git", "fetch", "-q", "origin", a.update], cwd=tmp)  # a branch, tag or full commit sha
+            sha = git("rev-parse", "FETCH_HEAD", cwd=tmp)
+            sh(["git", "checkout", "-q", sha, "--", "kit/sitekit.py"], cwd=tmp)
             (ROOT / ".kit").mkdir(exist_ok=True)
             shutil.copy2(Path(tmp) / "kit" / "sitekit.py", ROOT / ".kit" / "sitekit.py")
         conf = json.loads((ROOT / "site.json").read_text())
