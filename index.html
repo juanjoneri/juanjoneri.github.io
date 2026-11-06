@@ -3,126 +3,157 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Juan José Neri</title>
-<meta name="description" content="Juan José Neri — index of things hosted here.">
-<link rel="icon" type="image/svg+xml" href="/assets/favicon.svg">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+<title>juanjoneri.github.io — manual</title>
+<meta name="description" content="How pages on juanjoneri.github.io are built, encrypted and styled.">
+<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/style.css">
 <style>
-  :root {
-    --bg: #f6f3ee; --surface: #fffdf9; --fg: #1c1b19; --muted: #6f6a62;
-    --line: #e4ded4; --accent: #c2562f; --accent-soft: #f3e2d8;
-  }
-  @media (prefers-color-scheme: dark) {
-    :root {
-      --bg: #141312; --surface: #1c1b19; --fg: #edeae4; --muted: #9b958c;
-      --line: #2c2a27; --accent: #e07a52; --accent-soft: #2e211b;
-    }
-  }
-  * { box-sizing: border-box; }
-  html { -webkit-text-size-adjust: 100%; }
-  body {
-    margin: 0; background: var(--bg); color: var(--fg);
-    font: 16px/1.6 Inter, system-ui, -apple-system, sans-serif;
-    -webkit-font-smoothing: antialiased;
-  }
-  main { max-width: 760px; margin: 0 auto; padding: 14vh 20px 10vh; }
-  .eyebrow {
-    font-size: .8rem; letter-spacing: .14em; text-transform: uppercase;
-    color: var(--accent); margin: 0 0 1rem; font-weight: 500;
-  }
-  h1 {
-    font-family: Fraunces, Georgia, serif; font-weight: 400;
-    font-size: clamp(2.6rem, 8vw, 4.2rem); line-height: 1.05;
-    letter-spacing: -.02em; margin: 0 0 1.25rem;
-  }
-  h1 em { font-style: italic; color: var(--accent); }
-  .lede { color: var(--muted); font-size: 1.1rem; max-width: 34ch; margin: 0 0 4rem; }
-  h2 {
-    font-size: .8rem; letter-spacing: .14em; text-transform: uppercase;
-    color: var(--muted); font-weight: 500; margin: 3.5rem 0 1rem;
-    display: flex; align-items: center; gap: 1rem;
-  }
-  h2::after { content: ""; flex: 1; height: 1px; background: var(--line); }
-
-  .cards { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
-  .card {
-    display: block; text-decoration: none; color: inherit;
-    background: var(--surface); border: 1px solid var(--line); border-radius: 14px;
-    padding: 22px 22px 20px; position: relative;
-    transition: transform .2s ease, border-color .2s ease, box-shadow .2s ease;
-  }
-  .card:hover { transform: translateY(-2px); border-color: var(--accent); box-shadow: 0 10px 30px -18px rgba(0,0,0,.35); }
-  .card h3 { font-family: Fraunces, Georgia, serif; font-weight: 600; font-size: 1.3rem; margin: 0 0 .35rem; }
-  .card p { margin: 0; color: var(--muted); font-size: .95rem; }
-  .card .path { display: inline-block; margin-top: 14px; font: 500 .78rem ui-monospace, SFMono-Regular, Menlo, monospace; color: var(--accent); background: var(--accent-soft); padding: 3px 8px; border-radius: 6px; }
-  .card .arrow { position: absolute; top: 20px; right: 20px; color: var(--muted); transition: transform .2s ease, color .2s ease; }
-  .card:hover .arrow { transform: translate(3px,-3px); color: var(--accent); }
-
-  ul.list { list-style: none; padding: 0; margin: 0; }
-  ul.list li { border-top: 1px solid var(--line); }
-  ul.list li:last-child { border-bottom: 1px solid var(--line); }
-  ul.list a {
-    display: flex; justify-content: space-between; align-items: baseline; gap: 1rem;
-    padding: 14px 4px; text-decoration: none; color: inherit; transition: padding .2s ease, color .2s ease;
-  }
-  ul.list a:hover { padding-left: 12px; color: var(--accent); }
-  ul.list .name { font-weight: 500; }
-  ul.list .desc { color: var(--muted); font-size: .9rem; text-align: right; }
-
-  footer { margin-top: 5rem; color: var(--muted); font-size: .85rem; display: flex; gap: 1.25rem; flex-wrap: wrap; }
-  footer a { color: inherit; text-decoration: none; border-bottom: 1px solid var(--line); }
-  footer a:hover { color: var(--accent); border-color: var(--accent); }
-
-  @media (max-width: 520px) {
-    main { padding-top: 10vh; padding-left: 16px; padding-right: 16px; }
-    ul.list a { flex-direction: column; gap: 0; }
-    ul.list .desc { text-align: left; }
-  }
-  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+  .flow { font-size: 12px; line-height: 1.5; }
+  .swatches { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; margin: 0 0 12px; }
+  .sw { display: flex; align-items: center; gap: 8px; font-size: 12px; }
+  .sw i { width: 18px; height: 18px; border-radius: var(--radius); border: 1px solid var(--line); flex: none; }
+  ol { padding-left: 20px; margin: 0 0 12px; } li { margin-bottom: 6px; }
+  .toc { display: flex; flex-wrap: wrap; gap: 4px 14px; }
+  .toc a { white-space: nowrap; }
+  .demo { border: 1px dashed var(--line); border-radius: var(--radius); padding: 16px; margin: 0 0 12px; }
 </style>
 </head>
 <body>
 <main>
-  <p class="eyebrow">juanjoneri.github.io</p>
-  <h1>Juan José Neri<em>.</em></h1>
-  <p class="lede">An index of the things that live here.</p>
-
-  <h2>Sites</h2>
-  <div class="cards">
-    <a class="card" href="/p/test/">
-      <span class="arrow">↗</span>
-      <h3>Test page 🔒</h3>
-      <p>Encrypted test page, built from a private repo.</p>
-      <span class="path">/p/test</span>
-    </a>
-    <a class="card" href="archive/">
-      <span class="arrow">↗</span>
-      <h3>Portfolio, 2018</h3>
-      <p>The original personal site — experience, education, projects.</p>
-      <span class="path">/archive</span>
-    </a>
+  <div class="bar">
+    <span class="label">juanjoneri.github.io · manual v1</span>
+    <a href="/archive/">2018 site →</a>
   </div>
 
-  <h2>Archived experiments</h2>
-  <ul class="list">
-    <li><a href="archive/webGL1/"><span class="name">WebGL I — All together</span><span class="desc">Scene graph &amp; polygons</span></a></li>
-    <li><a href="archive/webGL2/"><span class="name">WebGL II — Lights &amp; camera</span><span class="desc">Lighting and camera models</span></a></li>
-    <li><a href="archive/webGL3/"><span class="name">WebGL III — Action!</span><span class="desc">Animated 3D scene</span></a></li>
-    <li><a href="archive/wall-e/"><span class="name">Wall-E</span><span class="desc">Keyframe-tweening canvas animation</span></a></li>
-    <li><a href="archive/bubbles/"><span class="name">Bubbles</span><span class="desc">Interactive canvas toy with sound</span></a></li>
-    <li><a href="archive/RSA/"><span class="name">RSA tool</span><span class="desc">Send &amp; receive encrypted messages</span></a></li>
-    <li><a href="archive/weather/"><span class="name">Weather</span><span class="desc">Location-based forecast</span></a></li>
-    <li><a href="archive/argentina/"><span class="name">Study abroad in Argentina</span><span class="desc">Travel journal</span></a></li>
-    <li><a href="archive/olive/"><span class="name">Olive</span><span class="desc">Collaborative project ↗</span></a></li>
-  </ul>
+  <h1>How pages on this site are made</h1>
+  <p class="muted">Private repos hold the data and the logic. This repo holds the rules, the shared style, and encrypted output only. Every private page lives at <code>/p/&lt;private-repo-name&gt;/</code>.</p>
+  <p class="toc"><a href="#flow">flow</a><a href="#rules">rules</a><a href="#register">register</a><a href="#contract">page contract</a><a href="#style">style</a><a href="#ops">operations</a></p>
 
-  <footer>
-    <a href="https://github.com/juanjoneri">GitHub</a>
-    <a href="https://www.linkedin.com/in/juanjoneri">LinkedIn</a>
-    <a href="https://medium.com/@juanjo.neri">Medium</a>
-  </footer>
+  <h2 id="flow"><span class="label">flow</span></h2>
+<pre class="flow">private repo (e.g. net-worth)                 juanjoneri.github.io (public)
+─────────────────────────────                 ─────────────────────────────
+data + build script
+   │ build             → dist/**/*.html  (plaintext, never leaves the runner)
+   │ encrypt (staticrypt, per-site password)
+   │ force-push        ─────────────────▶  branch site/net-worth   (latest copy only)
+   └ stamp             ─────────────────▶  master: sites.lock.json
+                                              │ deploy workflow
+                                              ▼  only slugs in registry.json
+                                           /p/net-worth/…  (GitHub Pages)</pre>
+  <p class="muted">Nothing encrypted is committed to <code>master</code>, so changing a password fully retires the old one.</p>
+
+  <h2 id="rules"><span class="label">rules</span></h2>
+  <table>
+    <tr><td>1</td><td>Raw data, credentials and business logic stay in the private repo.</td></tr>
+    <tr><td>2</td><td>Pages show <b>aggregates</b>: totals, trends, categories. No account numbers, card digits, addresses, emails, phone numbers, or other people's names.</td></tr>
+    <tr><td>3</td><td>Every private page is encrypted. Nothing private is ever committed to this repo in plaintext.</td></tr>
+    <tr><td>4</td><td>One password per site, stored in the password manager and as that repo's <code>STATICRYPT_PASSWORD</code> secret. 6+ random words.</td></tr>
+    <tr><td>5</td><td>Private sites are not listed on this page. You reach them by URL.</td></tr>
+  </table>
+
+  <h2 id="register"><span class="label">register a private repo</span></h2>
+  <ol>
+    <li>Add <code>{ "slug": "&lt;repo-name&gt;", "repo": "juanjoneri/&lt;repo-name&gt;" }</code> to <code>registry.json</code> here.</li>
+    <li>Generate a password in the password manager → private repo → <b>Settings → Secrets → Actions</b> → <code>STATICRYPT_PASSWORD</code>.</li>
+    <li>Make a deploy key on your machine:
+<pre>ssh-keygen -t ed25519 -N "" -C "&lt;repo-name&gt; → hub" -f hub_key</pre>
+      <code>hub_key.pub</code> → this repo → <b>Settings → Deploy keys</b> (allow write).<br>
+      <code>hub_key</code> → private repo secret <code>HUB_DEPLOY_KEY</code>. Then delete both files.</li>
+    <li>In the private repo, add a build script and <code>.github/workflows/site.yml</code>:
+<pre>name: site
+on:
+  push: { branches: [main] }
+  workflow_dispatch:
+  schedule: [{ cron: "17 9 * * 1" }]   # cadence
+jobs:
+  publish:
+    uses: juanjoneri/juanjoneri.github.io/.github/workflows/publish.yml@master
+    with:
+      build: bash build.sh      # must write plain HTML into dist/
+      title: Net worth          # shown on the unlock screen
+    secrets:
+      STATICRYPT_PASSWORD: ${{ secrets.STATICRYPT_PASSWORD }}
+      HUB_DEPLOY_KEY: ${{ secrets.HUB_DEPLOY_KEY }}</pre></li>
+    <li>Push. The site appears at <code>/p/&lt;repo-name&gt;/</code> a minute or two later.</li>
+  </ol>
+
+  <h2 id="contract"><span class="label">page contract</span></h2>
+  <table>
+    <tr><td>entry</td><td><code>dist/index.html</code> is required.</td></tr>
+    <tr><td>subpages</td><td>Any <code>dist/**/*.html</code>. <code>dist/q3/index.html</code> → <code>/p/&lt;repo&gt;/q3/</code>. Link with relative paths.</td></tr>
+    <tr><td>files</td><td><b>Only .html.</b> Inline CSS, JS, SVG charts and images (data URIs). Anything else would be published unencrypted, so the build fails.</td></tr>
+    <tr><td>shared</td><td>May reference public <code>/assets/style.css</code> and <code>/assets/favicon.svg</code>.</td></tr>
+    <tr><td>head</td><td><code>&lt;meta name="robots" content="noindex, nofollow"&gt;</code></td></tr>
+    <tr><td>unlock</td><td>One password per site. "Remember for 30 days" covers all subpages of that site.</td></tr>
+    <tr><td>size</td><td>Keep each page under ~2 MB; it is decrypted in the browser.</td></tr>
+  </table>
+
+  <h2 id="style"><span class="label">style</span></h2>
+  <p>Terminal-report look: one monospace font, small sizes, thin and dashed rules, colour only to mean something. Link <code>/assets/style.css</code> to get all of this.</p>
+
+  <h3>type</h3>
+  <table>
+    <tr><td>font</td><td><code>Menlo, Consolas, "Courier New", monospace</code></td></tr>
+    <tr><td>body</td><td>13px / 1.6</td></tr>
+    <tr><td>title</td><td>16px bold</td></tr>
+    <tr><td>label</td><td><span class="label">11px uppercase +1px</span></td></tr>
+    <tr><td>numbers</td><td>right-aligned, <code>tabular-nums</code>, k/M abbreviations (<code>21.2k</code>)</td></tr>
+  </table>
+
+  <h3>colour</h3>
+  <div class="swatches">
+    <div class="sw"><i style="background:var(--bg)"></i>--bg</div>
+    <div class="sw"><i style="background:var(--fg)"></i>--fg</div>
+    <div class="sw"><i style="background:var(--text)"></i>--text</div>
+    <div class="sw"><i style="background:var(--muted)"></i>--muted</div>
+    <div class="sw"><i style="background:var(--line)"></i>--line</div>
+    <div class="sw"><i style="background:var(--accent)"></i>--accent</div>
+    <div class="sw"><i style="background:var(--good)"></i>--good</div>
+    <div class="sw"><i style="background:var(--warn)"></i>--warn</div>
+    <div class="sw"><i style="background:var(--bad)"></i>--bad</div>
+  </div>
+  <p class="muted">Chart series, in order:</p>
+  <div class="swatches">
+    <div class="sw"><i style="background:var(--s1)"></i>--s1</div>
+    <div class="sw"><i style="background:var(--s2)"></i>--s2</div>
+    <div class="sw"><i style="background:var(--s3)"></i>--s3</div>
+    <div class="sw"><i style="background:var(--s4)"></i>--s4</div>
+    <div class="sw"><i style="background:var(--s5)"></i>--s5</div>
+    <div class="sw"><i style="background:var(--s6)"></i>--s6</div>
+    <div class="sw"><i style="background:var(--s7)"></i>--s7</div>
+  </div>
+
+  <h3>components</h3>
+  <div class="demo">
+    <div class="label">summary</div>
+    <div class="kpis" style="margin-top:8px">
+      <div class="kpi"><div class="label">spent</div><div class="v">$3.9k</div><div class="d muted">this week</div></div>
+      <div class="kpi"><div class="label">income</div><div class="v good">+$48</div><div class="d muted">this week</div></div>
+      <div class="kpi"><div class="label">review</div><div class="v warn">⚠ 9</div><div class="d muted">to look at</div></div>
+    </div>
+    <table>
+      <tr><th>category</th><th class="num">week</th><th class="num">Δ</th></tr>
+      <tr><td>groceries</td><td class="num">412</td><td class="num bad">+18%</td></tr>
+      <tr><td>transport</td><td class="num">96</td><td class="num good">−22%</td></tr>
+      <tr><td>status</td><td class="num">✅ up to date</td><td class="num"></td></tr>
+    </table>
+    <a class="btn" href="#style">button</a> <span class="tag">tag</span>
+  </div>
+<pre>&lt;div class="label"&gt;summary&lt;/div&gt;
+&lt;div class="kpis"&gt;&lt;div class="kpi"&gt;&lt;div class="label"&gt;spent&lt;/div&gt;&lt;div class="v"&gt;$3.9k&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;table&gt;&lt;tr&gt;&lt;td&gt;groceries&lt;/td&gt;&lt;td class="num"&gt;412&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</pre>
+  <p class="muted">Status words: ✅ ok · ⚠ needs attention · ⏳ pending / expiring · ✗ failed. Charts: inline SVG, 1–2px strokes, no gridlines beyond a dashed baseline, series colours in order.</p>
+
+  <h2 id="ops"><span class="label">operations</span></h2>
+  <table>
+    <tr><td>cadence</td><td>Each private repo's <code>schedule</code> cron. Manual: Actions → site → Run workflow.</td></tr>
+    <tr><td>new password</td><td>Replace the repo secret, re-run its workflow, update the password manager. The old one stops working.</td></tr>
+    <tr><td>unregister</td><td>Remove from <code>registry.json</code>; delete branch <code>site/&lt;repo&gt;</code> and its deploy key.</td></tr>
+    <tr><td>failed publish</td><td>Check the private repo's Actions log (private). Deploy errors are in this repo's Actions log; they never contain page content.</td></tr>
+  </table>
+
+  <hr>
+  <p class="muted">2018 portfolio → <a href="/archive/">/archive</a> · <a href="https://github.com/juanjoneri">github</a></p>
 </main>
 </body>
 </html>

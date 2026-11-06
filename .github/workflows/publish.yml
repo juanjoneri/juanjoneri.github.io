@@ -1,0 +1,78 @@
+name: publish
+
+# Reusable workflow, called from a private repo. Runs entirely inside the CALLER (private) repo:
+# build → encrypt → push to site/<repo-name> on the hub. Plaintext and logs never leave the private repo.
+#
+# Caller example (.github/workflows/site.yml in the private repo):
+#   jobs:
+#     publish:
+#       uses: juanjoneri/juanjoneri.github.io/.github/workflows/publish.yml@master
+#       with: { build: "bash build.sh", title: "My page" }
+#       secrets:
+#         STATICRYPT_PASSWORD: ${{ secrets.STATICRYPT_PASSWORD }}
+#         HUB_DEPLOY_KEY: ${{ secrets.HUB_DEPLOY_KEY }}
+
+on:
+  workflow_call:
+    inputs:
+      build:
+        description: Command that writes plain HTML into the dist directory
+        type: string
+        required: true
+      dist:
+        description: Output directory of the build
+        type: string
+        default: dist
+      title:
+        description: Title shown on the unlock screen (defaults to the repo name)
+        type: string
+        default: ""
+    secrets:
+      STATICRYPT_PASSWORD:
+        required: true
+      HUB_DEPLOY_KEY:
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    env:
+      HUB: juanjoneri/juanjoneri.github.io
+      DIST: ${{ inputs.dist }}
+      TITLE: ${{ inputs.title }}
+      OUT: ${{ github.workspace }}/.encrypted
+      TEMPLATE: ${{ github.workspace }}/.hub/assets/unlock.html
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+
+      - name: Fetch hub tooling
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          repository: juanjoneri/juanjoneri.github.io
+          ref: master
+          path: .hub
+          sparse-checkout: |
+            assets
+            .github/scripts
+
+      - name: Slug
+        run: echo "SLUG=${GITHUB_REPOSITORY#*/}" >> "$GITHUB_ENV"
+
+      - name: Build
+        run: ${{ inputs.build }}
+
+      - name: Encrypt
+        env:
+          STATICRYPT_PASSWORD: ${{ secrets.STATICRYPT_PASSWORD }}
+        run: bash .hub/.github/scripts/encrypt.sh
+
+      - name: Remove plaintext
+        run: rm -rf "$DIST"
+
+      - name: Push to hub
+        env:
+          HUB_DEPLOY_KEY: ${{ secrets.HUB_DEPLOY_KEY }}
+        run: bash .hub/.github/scripts/push.sh

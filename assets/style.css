@@ -1,0 +1,54 @@
+/* juanjoneri.github.io — shared style. Pages may link this: <link rel="stylesheet" href="/assets/style.css"> */
+:root {
+  --bg: #fcfcfb; --surface: #ffffff; --fg: #0b0b0b; --text: #383835; --muted: #8a8984; --line: #e6e5e1;
+  --accent: #2a78d6; --good: #0a7f0a; --warn: #9a6700; --bad: #d6455d;
+  --s1: #2a78d6; --s2: #e07b39; --s3: #8a5cd6; --s4: #1f9a9a; --s5: #c2185b; --s6: #2e9e5b; --s7: #b8860b;
+  --mono: Menlo, Consolas, "Courier New", monospace;
+  --radius: 3px;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #111110; --surface: #181817; --fg: #f2f1ed; --text: #cfcdc7; --muted: #8a8984; --line: #2a2a28;
+    --accent: #5b9ae6; --good: #3fb950; --warn: #d4a72c; --bad: #e8687d;
+  }
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--bg); color: var(--text); font: 13px/1.6 var(--mono); }
+main { max-width: 720px; margin: 0 auto; padding: 56px 16px 80px; }
+a { color: var(--accent); text-underline-offset: 2px; }
+h1 { font-size: 16px; color: var(--fg); margin: 6px 0 4px; }
+h2 { font-size: 13px; color: var(--fg); margin: 40px 0 12px; }
+h3 { font-size: 13px; color: var(--fg); margin: 24px 0 8px; font-weight: 400; }
+p { margin: 0 0 12px; }
+hr { border: 0; border-top: 1px dashed var(--line); margin: 24px 0; }
+code { font-family: var(--mono); color: var(--fg); }
+pre { font-family: var(--mono); background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 12px; overflow-x: auto; color: var(--fg); margin: 0 0 12px; }
+
+/* ▍LABEL — section eyebrow */
+.label { font-size: 11px; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); }
+.label::before { content: "▍"; color: var(--accent); }
+.muted { color: var(--muted); }
+.good { color: var(--good); } .warn { color: var(--warn); } .bad { color: var(--bad); }
+
+/* key/value rows */
+table { border-collapse: collapse; width: 100%; margin: 0 0 12px; }
+th { text-align: left; font-weight: 400; font-size: 11px; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); padding: 6px 8px 6px 0; border-bottom: 1px solid var(--line); }
+td { padding: 7px 8px 7px 0; border-bottom: 1px dashed var(--line); vertical-align: top; }
+td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; color: var(--fg); padding-right: 0; }
+
+/* KPI row */
+.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin: 0 0 16px; }
+.kpi { border: 1px solid var(--line); border-radius: var(--radius); padding: 10px 12px; background: var(--surface); }
+.kpi .v { font-size: 18px; color: var(--fg); font-variant-numeric: tabular-nums; }
+.kpi .d { font-size: 11px; }
+
+/* outlined button / tag */
+.btn { display: inline-block; font: inherit; letter-spacing: 1px; text-transform: uppercase; text-decoration: none; color: var(--accent); border: 1px solid var(--accent); border-radius: var(--radius); padding: 6px 12px; background: transparent; cursor: pointer; }
+.btn:hover { background: var(--accent); color: var(--bg); }
+.tag { display: inline-block; font-size: 11px; border: 1px solid var(--line); border-radius: var(--radius); padding: 0 6px; color: var(--muted); }
+
+/* top bar */
+.bar { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 24px; }
+.bar a { color: var(--muted); text-decoration: none; }
+.bar a:hover { color: var(--accent); }
