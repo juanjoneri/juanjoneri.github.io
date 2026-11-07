@@ -690,6 +690,9 @@ def commit_outputs(paths, message):
 
 def cmd_run(a):
     j = job(a.job)
+    if not j.get("command"):
+        sys.exit(f"{a.job} runs on {j.get('runs_on', '?')} and has no local command"
+                 + (f"; build offline with: {CONF['build_offline']}" if CONF.get("build_offline") else ""))
     lock = ROOT / ".git" / f"sitekit-{a.job}.lock"
     try:
         lock.mkdir()
@@ -1031,10 +1034,12 @@ def cmd_recovery(a=None):
             L.append(f"   - `site/{slug}/STATE_AGE_KEY` ← password manager `{slug} / STATE_AGE_KEY` "
                      "(needed to restore the state; it can be removed from the Keychain afterwards)")
         n += 1
-    L.append(f"{n}. `./setup`: runs the setup commands, restores the state from the `state` branch, installs the "
-             "schedules and runs `./doctor`. Repeat until doctor shows ✅ ready.")
+    does = ["runs the setup commands"] + (["restores the state from the `state` branch"] if has_state else []) + \
+        (["installs the schedules"] if local_jobs() else []) + ["runs `./doctor`"]
+    L.append(f"{n}. `./setup`: {', '.join(does[:-1])} and {does[-1]}. Repeat until doctor shows ✅ ready.")
     n += 1
-    L += [f"{n}. Prove it: `./run <job> --offline` must give the same output as before (the acceptance test).", ""]
+    proof = f"`{CONF['build_offline']}`" if CONF.get("build_offline") else "`./run <job> --offline`"
+    L += [f"{n}. Prove it: {proof} must build the same output as before, offline (the acceptance test).", ""]
     gh = [s for s in CONF["secrets"] if s.get("where") == "actions"]
     if gh:
         L += ["## GitHub Actions secrets (repo Settings → Secrets → Actions)", ""]
