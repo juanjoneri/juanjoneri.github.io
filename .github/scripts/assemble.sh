@@ -61,14 +61,14 @@ for slug in $(jq -r '.sites[].slug' registry.json); do
   title=$(echo "$slug" | sed -E 's/[-_.]+/ /g; s/\b(.)/\u\1/g')   # repo name in title case: airtable-debts → Airtable Debts
   ts=$(git log -1 --format=%cI "origin/site/$slug")
   when=$([ -n "$ts" ] && TZ=America/Los_Angeles date -d "$ts" '+%b %-d, %-I:%M %p' || echo "—")
-  ROWS+="    <tr><td>🔒 <a href=\"/p/$slug/\">$title</a></td><td class=\"hide-sm muted\">/p/$slug/</td><td class=\"num muted\">$when</td><td class=\"num\" data-status-slug=\"$slug\">—</td></tr>"$'\n'
+  ROWS+="    <tr><td>🔒 <a href=\"/p/$slug/\">$title</a><span data-status-slug=\"$slug\"></span></td><td class=\"hide-sm muted\">/p/$slug/</td><td class=\"num muted\">$when</td></tr>"$'\n'
 done
 
 # Deploy state written by deploy.yml (master + site branch SHAs); published so the next run can skip if unchanged.
 [ -f .deploy-state ] && cp .deploy-state "$OUT/deploy-state.txt"
 
 # Fill the landing page's sites table.
-[ -n "$ROWS" ] || ROWS='    <tr><td colspan="4" class="muted">no sites published yet</td></tr>'$'\n'
+[ -n "$ROWS" ] || ROWS='    <tr><td colspan="3" class="muted">no sites published yet</td></tr>'$'\n'
 python3 - "$OUT/index.html" "$ROWS" <<'PY'
 import glob, json, os, sys
 p, rows = sys.argv[1], sys.argv[2]
