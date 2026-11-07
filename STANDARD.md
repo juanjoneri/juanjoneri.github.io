@@ -195,8 +195,8 @@ The publish workflow embeds the full `status.json` into these pages **before enc
 `status.js` renders one line per job (✅ ok · ⚠️ stale · ❌ failed at <step> · ⏳ reminder), evaluated against the
 viewer's clock. A job that silently stopped turns stale without any redeploy.
 
-7.4 Publicly, each site publishes only `{"version": 2, "slug", "failed", "ok_until"}`. The landing page shows ⚠️ in
-the site's row when `failed` is true or `ok_until` has passed. `status_check.py` validates both formats.
+7.4 Publicly, each site publishes only `{"version": 2, "slug", "failed", "ok_until"}`. The landing page shows ⚠️ right
+after the site's name when `failed` is true or `ok_until` has passed, and nothing otherwise. `status_check.py` validates both formats.
 Anything else is dropped.
 
 ## 8. Acceptance test

@@ -1,7 +1,8 @@
 /* Reporting (STANDARD.md §7). Evaluated against the viewer's clock, so a job that silently stopped shows up without
    anything being redeployed.
    - Landing page (public): <script id="site-status" type="application/json"> holds each site's summary
-     {failed, ok_until}. A cell [data-status-slug] shows a warning sign when the site needs attention; nothing else.
+     {failed, ok_until}. The [data-status-slug] span after the site's name shows a warning sign when the site needs
+     attention; nothing otherwise.
    - Project pages (encrypted): publish embeds the full status as <script id="site-status-data"> next to
      <div data-site-status="<slug>"></div>; this script renders one line per job there. Details never leave the
      encrypted page. */
@@ -38,12 +39,12 @@
     if (!data) return;
     var all = JSON.parse(data.textContent || "{}");
     var now = Date.now();
-    document.querySelectorAll("[data-status-slug]").forEach(function (td) {
-      var s = all[td.getAttribute("data-status-slug")];
+    document.querySelectorAll("[data-status-slug]").forEach(function (el) {
+      var s = all[el.getAttribute("data-status-slug")];
       var warn = !!s && (s.failed || (s.ok_until && now > Date.parse(s.ok_until)));
-      td.textContent = warn ? ICON.stale : "";
-      td.title = warn ? "needs attention: open the site for details" : "";
-      td.className = "num" + (warn ? " status-stale" : "");
+      el.textContent = warn ? " " + ICON.stale : "";
+      el.title = warn ? "needs attention: open the site for details" : "";
+      el.setAttribute("aria-label", warn ? "needs attention" : "");
     });
   }
 
