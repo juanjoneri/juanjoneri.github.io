@@ -102,9 +102,9 @@ blue `▍`; numbers right-aligned with `tabular-nums` (`td.num`), k/M abbreviati
 **Components**
 
 ```html
-<!-- top bar: hub button, title, status (STANDARD.md §7.3), actions -->
-<div class="topbar"><a class="btn icon" href="/" aria-label="all sites"><span class="e">🏠</span></a><h1>Airtable Debts</h1>
-  <div data-site-status="airtable-debts"></div><button class="btn icon" aria-label="reload" onclick="location.reload()">↻</button></div>
+<!-- top bar: back to all sites, title, status (STANDARD.md §7.3). No reload button: pull to refresh does it. -->
+<div class="topbar"><a class="btn back" href="/" aria-label="all sites">←<span class="e">🏠</span></a><h1>Airtable Debts</h1>
+  <div data-site-status="airtable-debts"></div></div>
 
 <!-- tabs: one scrolling row; swipe between panels; the open tab is kept in the URL (#market) -->
 <div class="pill-row" data-tabs="main"><button class="btn" data-tab="market"><span class="e">📈</span>Market</button> …</div>
