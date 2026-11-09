@@ -28,7 +28,8 @@ file. The served landing page (`index.html`) only lists the sites: no architectu
 
 ## Building a page in a private repo
 - Build writes plain HTML to `dist/`; `dist/index.html` required; subpages are any `dist/**/*.html`; links are relative.
-- Only `.html` files in `dist/` (inline CSS/JS/SVG/data-URI images). Pages may link `/assets/style.css`, `/assets/favicon.svg` and `/assets/status.js` (the status block, STANDARD.md §7.3).
+- Only `.html` files in `dist/` (inline CSS/JS/SVG/data-URI images). Pages may link `/assets/style.css`, `/assets/favicon.svg`, `/assets/status.js` (the status block, STANDARD.md §7.3) and `/assets/ui.js` (shared behaviour: tabs, choice pills, expand all, chart scrubbing).
+- Shared assets are served live from master (not pinned): every change must be backward compatible. New class names must not collide with the sites' own (check all four pages before merging); generic names get a `ui-` prefix.
 - Include `<meta name="robots" content="noindex, nofollow">`.
 - Page name = repo name in title case everywhere (`airtable-debts` → `Airtable Debts`): `<title>`, main heading, label. Subpages: `Airtable Debts · <Subpage>`. The landing page and unlock screen derive it automatically.
 - Show aggregates only: no account numbers, card digits, addresses, emails, or phone numbers. People may appear by first name or nickname only (never full names).

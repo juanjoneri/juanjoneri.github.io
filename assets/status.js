@@ -48,23 +48,50 @@
     });
   }
 
+  // Compact: a dot + the age of the newest successful run (or the problem); tap for one line per job.
   function pages() {
     var data = document.getElementById("site-status-data");
     document.querySelectorAll("[data-site-status]").forEach(function (el) {
       var status = data ? JSON.parse(data.textContent || "{}") : null;
       var jobs = (status && status.jobs) || {};
       var now = Date.now();
-      var rs = Object.keys(jobs).sort().map(function (k) { return judge(k, jobs[k], now); });
+      var names = Object.keys(jobs).sort();
+      var rs = names.map(function (k) { return judge(k, jobs[k], now); });
       var worst = rs.reduce(function (a, r) { return RANK[r.level] > RANK[a] ? r.level : a; }, "ok");
+      if (!rs.length) worst = "unknown";
+      var newest = names.reduce(function (a, k) { var t = Date.parse(jobs[k].last_ok || 0) || 0; return t > a ? t : a; }, 0);
+      var short = !rs.length ? "no status" : worst === "ok" ? ago(now - newest) :
+        rs.filter(function (r) { return r.level === worst; }).length + " " + worst;
+      var open = el.querySelector(".details") && !el.querySelector(".details").hidden;
       el.textContent = "";
-      el.className = "site-status status-" + (rs.length ? worst : "unknown");
-      if (!rs.length) { el.textContent = ICON.unknown + " no status reported"; return; }
+      el.className = "site-status status-" + worst;
+      var btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "ui-status status-" + worst + ((worst === "stale" || worst === "failed") && !el.dataset.pulsed ? " pulse" : "");
+      btn.setAttribute("aria-expanded", open ? "true" : "false");
+      btn.title = "job status";
+      var dot = document.createElement("span"); dot.className = "ui-dot";
+      var t = document.createElement("span"); t.className = "t"; t.textContent = short;
+      btn.appendChild(dot); btn.appendChild(t);
+      el.dataset.pulsed = "1";
+      var det = document.createElement("div");
+      det.className = "details"; det.hidden = !open;
       rs.forEach(function (r) {
         var line = document.createElement("div");
         line.className = "status-" + r.level;
         line.textContent = ICON[r.level] + " " + r.text;
-        el.appendChild(line);
+        det.appendChild(line);
       });
+      btn.addEventListener("click", function () { det.hidden = !det.hidden; btn.setAttribute("aria-expanded", det.hidden ? "false" : "true"); });
+      if (!el.dataset.outside) {  // a tap anywhere else closes the details
+        el.dataset.outside = "1";
+        document.addEventListener("pointerdown", function (e) {
+          var d = el.querySelector(".details"), b = el.querySelector(".ui-status");
+          if (d && !el.contains(e.target)) { d.hidden = true; if (b) b.setAttribute("aria-expanded", "false"); }
+        });
+      }
+      el.appendChild(btn);
+      if (rs.length) el.appendChild(det);
     });
   }
 
