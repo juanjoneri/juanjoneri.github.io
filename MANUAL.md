@@ -142,7 +142,7 @@ fallback for older iOS), and `.e` aligns emoji to it. Measured within 1px with M
 | go-live delay | Each site push triggers the deploy (a few minutes). A 10-minute schedule is a fallback. To publish now: this repo → Actions → deploy → Run workflow. |
 | hub changes | `master` is protected: only Juan pushes it; everyone else opens a pull request. After changing `publish.yml`, `.github/scripts/encrypt.sh` / `push.sh`, `.github/staticrypt` or `assets/unlock.html`, bump the pinned commit (`uses: …@<sha>` and `hub_ref`) in every private repo. |
 | new deploy key | Generate a new key, replace the public half under Deploy keys and the private half in the repo's `HUB_DEPLOY_KEY`, run its workflow, then put the new "signing key" from the log in `registry.json`. |
-| site rejected | The deploy log says why: "bad signature or manifest" (wrong key, or files changed after signing), "unsigned" (no key in the registry yet), or non-HTML / unencrypted files. |
+| site rejected | It is not deployed: the landing page lists it as "not published" ⚠️ and the deploy run fails (GitHub emails you). The build job's log says why: "bad signature or manifest" (wrong key, or files changed after signing), "unsigned" (no key in the registry yet), or non-HTML / unencrypted files. |
 | new password | Replace the repo secret, re-run its workflow, update the password manager. The old one stops working. |
 | unregister | Remove it from `registry.json`; delete the branch `site/<repo>` and its deploy key. |
 | failed publish | Check the private repo's Actions log (private). Deploy errors are in this repo's Actions log; they never contain page content. |
