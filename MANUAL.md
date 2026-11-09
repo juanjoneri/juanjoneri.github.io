@@ -82,54 +82,53 @@ Nothing encrypted is committed to `master`, so changing a password fully retires
 
 ## Style
 
-Terminal-report look: one monospace font, small sizes, thin and dashed rules, colour only to mean something. Link
-`/assets/style.css` to get all of this; it also handles dark mode.
+Dark only, compact, touch first. Monospace throughout, colour only to mean something, pills for anything tappable,
+emoji sparingly (tabs, the hub button, warnings; not in rows or numbers). Link `/assets/style.css`; add
+`<script src="/assets/ui.js"></script>` for behaviour. Pages keep working without JavaScript. Motion is short
+(120–200 ms) and switches off under Reduce Motion.
 
-**Type**
+**Type:** `Menlo, Consolas, "Courier New", monospace`, 13px / 1.5; titles 15px bold; `.label` 11px uppercase with a
+blue `▍`; numbers right-aligned with `tabular-nums` (`td.num`), k/M abbreviations.
 
-| | |
-|---|---|
-| font | `Menlo, Consolas, "Courier New", monospace` |
-| body | 13px / 1.6 |
-| title | 16px bold |
-| label | 11px uppercase, +1px letter spacing, blue `▍` prefix (`.label`) |
-| numbers | right-aligned, `tabular-nums` (`td.num`), k/M abbreviations (`21.2k`) |
+**Colour tokens** (`assets/style.css`)
 
-**Colour tokens** (CSS variables in `assets/style.css`, light / dark)
-
-| token | light | dark | use |
-|---|---|---|---|
-| `--bg` | `#fcfcfb` | `#111110` | page |
-| `--surface` | `#ffffff` | `#181817` | boxes |
-| `--fg` | `#0b0b0b` | `#f2f1ed` | headings, numbers |
-| `--text` | `#383835` | `#cfcdc7` | body |
-| `--muted` | `#8a8984` | `#8a8984` | secondary text |
-| `--line` | `#e6e5e1` | `#2a2a28` | rules, borders |
-| `--accent` | `#2a78d6` | `#5b9ae6` | links, buttons |
-| `--good` | `#0a7f0a` | `#3fb950` | positive |
-| `--warn` | `#9a6700` | `#d4a72c` | attention |
-| `--bad` | `#d6455d` | `#e8687d` | negative |
-
-Chart series, in order: `--s1` `#2a78d6`, `--s2` `#e07b39`, `--s3` `#8a5cd6`, `--s4` `#1f9a9a`, `--s5` `#c2185b`,
-`--s6` `#2e9e5b`, `--s7` `#b8860b`.
+| token | value | use |
+|---|---|---|
+| `--bg` / `--surface` / `--raise` | `#0e0e0d` / `#181817` / `#222220` | page / pills, boxes / pressed |
+| `--fg` / `--text` / `--muted` / `--line` | `#f2f1ed` / `#cfcdc7` / `#8a8984` / `#2a2a28` | numbers, headings / body / secondary / rules |
+| `--accent` / `--good` / `--warn` / `--bad` | `#5b9ae6` / `#3fb950` / `#d4a72c` / `#e8687d` | links / positive / attention / negative |
+| `--s1` … `--s7` | `#5b9ae6 #e8925a #a888e8 #3cbcbc #e0609a #4cc27a #d4a72c` | chart series, in order |
 
 **Components**
 
 ```html
-<div class="bar"><span class="label">site name</span><a href="/">← hub</a></div>   <!-- top bar -->
-<div class="kpis">                                                                   <!-- KPI row -->
-  <div class="kpi"><div class="label">spent</div><div class="v">$3.9k</div><div class="d muted">this week</div></div>
-  <div class="kpi"><div class="label">income</div><div class="v good">$48</div></div>   <!-- .good / .warn / .bad -->
-</div>
-<table>
-  <tr><th>category</th><th class="num">week</th></tr>
-  <tr><td>groceries</td><td class="num bad">+18%</td></tr>
-</table>
-<a class="btn" href="#">button</a> <span class="tag">tag</span>
-```
+<!-- top bar: hub button, title, status (STANDARD.md §7.3), actions -->
+<div class="topbar"><a class="btn icon" href="/" aria-label="all sites"><span class="e">🏠</span></a><h1>Airtable Debts</h1>
+  <div data-site-status="airtable-debts"></div><button class="btn icon" aria-label="reload" onclick="location.reload()">↻</button></div>
 
-Status words: ✅ ok · ⚠ needs attention · ⏳ pending / expiring · ✗ failed. Charts: inline SVG, 1–2px strokes, no
-gridlines beyond a dashed baseline, series colours in order.
+<!-- tabs: one scrolling row; swipe between panels; the open tab is kept in the URL (#market) -->
+<div class="pill-row" data-tabs="main"><button class="btn" data-tab="market"><span class="e">📈</span>Market</button> …</div>
+<section data-panel="market">…</section>
+
+<!-- values -->
+<div class="pills"><span class="chip good">owed <b>$4,135</b></span><span class="chip warn"><span class="e">⚠️</span><b>3</b> to review</span></div>
+
+<!-- single choice (fires a `choice` event), expand all -->
+<div class="pill-row" data-choice="range"><button class="btn on" data-value="1y">1y</button> … <span class="spacer"></span>
+  <button class="btn" data-expand-all="#people">expand all</button></div>
+
+<!-- expandable rows -->
+<div id="people"><details class="disclosure"><summary>Robin <span class="muted">12</span><span class="n good">+$1,694</span></summary>
+  <div class="in">…</div></details></div>
+
+<!-- chart scrubbing: drag across to read values; tap to pin; vertical scrolling still works -->
+<svg id="sp" viewBox="0 0 300 46" data-scrub='[[0,30,"Mon 6,780"],[100,22,"Tue 6,795"]]'>…</svg><div data-scrub-label="sp"></div>
+```
+Also: `.scroll-x` (sideways-scrolling table wrapper), `.meter > i` (progress bar), `.tag`, and the older `.kpis` /
+`.kpi` / `.bar`, which still work.
+
+Pills are 32px tall with a 44px tap area. Text is centred on its capital letters (`text-box`, iOS 18.2+; padded
+fallback for older iOS), and `.e` aligns emoji to it. Measured within 1px with Menlo's metrics.
 
 ## Operations
 
