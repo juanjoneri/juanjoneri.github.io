@@ -69,7 +69,7 @@ See `kit/template/site.json` for a complete example.
 | `setup` | shell commands `./setup` runs (venv, `uv sync --frozen`, `npm ci`, …) |
 | `tools` | `{cmd, version?, match? (regex on the version line), fix, required?}` |
 | `secrets` | `{name, where: keychain\|actions, jobs?, keychain? (legacy Keychain service to map), fix}` |
-| `state` | `{raw_db?, state_db?, warm: [paths], exclude: [globs], keep: 7, recipient}` (§4, §5) |
+| `state` | `{raw_db?, state_db?, warm: [paths], exclude: [globs], keep: 7, recipient, append?}` (§4, §5); `append: true` for jobs whose machine starts empty every run (GitHub Actions, §5.6) |
 | `jobs` | list of jobs (§6) |
 | `test` | **required**: command that builds the outputs from the committed fake data, offline, with no secrets (§8.1) |
 | `build_offline` | command that builds the outputs from the restored real state, offline (§8) |
@@ -147,6 +147,12 @@ segments. Rows are marked saved only after the push that carries them succeeds.
 - rebuilds `raw.db` and checks every file's sha256;
 - restores the newest `state.db` and the warm caches;
 - needs `SITES_DATA_KEY` (§5.4); keeps any existing local files as `*.bak` with `--force`.
+
+5.6 **Saving from GitHub Actions (`state.append`).** A runner starts with an empty `raw.db`, and saving needs only the
+public key, so an Actions job can save without ever holding `SITES_DATA_KEY`: ingest this run's sources, then `save`.
+Each save adds a new segment and its own small index (`raw/index-<ts>.age`) instead of rewriting one. The same file
+saved by two runs is stored twice in the branch but restored once (its paths are all kept in `sightings`). Warm
+caches of public data (e.g. SEC/Yahoo lookups) can use the Actions cache instead of `warm`.
 
 ## 6. Jobs, schedules, secrets
 

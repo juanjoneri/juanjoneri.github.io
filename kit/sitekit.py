@@ -90,6 +90,7 @@ def load():
     st.setdefault("warm", [])             # rebuildable but slow caches saved weekly
     st.setdefault("exclude", [])          # fnmatch on "<source>/<path>"; recorded by name + hash only
     st.setdefault("keep", 7)
+    st.setdefault("append", False)        # the saving machine starts empty each run (GitHub Actions): see cmd_save
 
 
 def now():
@@ -583,7 +584,9 @@ def cmd_save(a=None):
             if pending >= PUSH_BATCH_BYTES:  # stay far below GitHub's 2 GB push limit
                 checkpoint(f"state {ts} (partial)")
                 pending = 0
-        # excluded/sightings changes ride in a small "index" segment rewritten each save
+        # excluded/sightings ride in a small "index" file. A machine that keeps raw.db rewrites one full index each
+        # save; an `append` project (raw.db starts empty every run, e.g. on GitHub Actions) adds one index per save
+        # with that run's rows, and restore merges them all.
         with tempfile.TemporaryDirectory() as tmp:
             xf = Path(tmp) / "index.db"
             x = sqlite3.connect(xf)
@@ -594,7 +597,11 @@ def cmd_save(a=None):
             x.commit()
             x.execute("DETACH src")
             x.close()
-            man["raw_index"] = encrypt_to(xf, d / "raw" / "index")
+            if st["append"]:
+                idx = man.setdefault("raw_indexes", [])
+                idx.append(encrypt_to(xf, d / "raw" / f"index-{ts}-{len(idx):05d}"))
+            else:
+                man["raw_index"] = encrypt_to(xf, d / "raw" / "index")
 
     # state.db: consistent copy every save, last N kept
     if st["state_db"] and p(st["state_db"]).exists():
@@ -665,20 +672,22 @@ def cmd_restore(a):
                 if hashlib.sha256(sf.read_bytes()).hexdigest() != seg["sha256"]:
                     sys.exit(f"segment {seg['id']} does not match its manifest hash")
                 c.execute("ATTACH ? AS s", (str(sf),))
-                c.execute("INSERT INTO raw_files(source,path,sha256,bytes,mtime,imported_at,media_type,compression,"
-                          "meta,segment,content) SELECT source,path,sha256,bytes,mtime,imported_at,media_type,"
-                          "compression,meta,segment,content FROM s.raw_files ORDER BY id")
+                # OR IGNORE: an `append` project can save the same file in two runs; its paths are in the sightings
+                c.execute("INSERT OR IGNORE INTO raw_files(source,path,sha256,bytes,mtime,imported_at,media_type,"
+                          "compression,meta,segment,content) SELECT source,path,sha256,bytes,mtime,imported_at,"
+                          "media_type,compression,meta,segment,content FROM s.raw_files ORDER BY id")
                 c.commit()
                 c.execute("DETACH s")
                 sf.unlink()
-            if man.get("raw_index"):
+            for parts in ([man["raw_index"]] if man.get("raw_index") else []) + man.get("raw_indexes", []):
                 xf = Path(tmp) / "index.db"
-                decrypt_parts(d / "raw", man["raw_index"], xf, ident)
+                decrypt_parts(d / "raw", parts, xf, ident)
                 c.execute("ATTACH ? AS s", (str(xf),))
                 c.execute("INSERT OR IGNORE INTO excluded SELECT * FROM s.excluded")
                 c.execute("INSERT OR IGNORE INTO sightings SELECT * FROM s.sightings")
                 c.commit()
                 c.execute("DETACH s")
+                xf.unlink()
             n = c.execute("SELECT count(*) FROM raw_files").fetchone()[0]
             bad = sum(1 for comp, h, blob in c.execute("SELECT compression, sha256, content FROM raw_files")
                       if hashlib.sha256(read_blob(comp, blob)).hexdigest() != h)
@@ -744,6 +753,8 @@ def rekey(d, man):
         groups = [("raw", x["id"], x["parts"], x) for x in man["raw"]]
         if man.get("raw_index"):
             groups.append(("raw", "index", man["raw_index"], None))
+        for i, parts in enumerate(man.get("raw_indexes", [])):
+            groups.append(("raw", parts[0].split(".age")[0], parts, ("raw_indexes", i)))
         groups += [("state", f"state-{x['at']}", x["parts"], x) for x in man["state"]]
         groups += [("warm", re.sub(r"[^A-Za-z0-9._-]", "_", x["path"]), x["parts"], x) for x in man.get("warm", [])]
         for folder, base, parts, entry in groups:
@@ -753,6 +764,8 @@ def rekey(d, man):
             plain.unlink()
             if entry is None:
                 man["raw_index"] = new
+            elif isinstance(entry, tuple):
+                man[entry[0]][entry[1]] = new
             else:
                 entry["parts"] = new
     man["recipient"] = age_recipient()
