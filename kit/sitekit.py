@@ -6,12 +6,14 @@ external tools: git, and `age` for state encryption.
 
   sitekit.py setup [--update REF]   bootstrap a machine: setup commands, restore state, install schedules, doctor
   sitekit.py doctor [--quick]       check every dependency; exit 1 if anything required is missing
-  sitekit.py run JOB [--offline]    run one job: command, status, save state, commit outputs + status, push
+  sitekit.py run JOB [--offline]    run one job: update code from GitHub (tested), command, status, save, push
+  sitekit.py test                   build from the committed fake data (site.json "test"; no secrets, no real data)
   sitekit.py ingest SOURCE PATH...  add source files (zips are unpacked) to the raw store, losslessly
   sitekit.py save                   encrypt new raw segments + state.db (+ warm caches) and push the `state` branch
   sitekit.py restore [--force]      fetch the `state` branch and decrypt it into the local state files
   sitekit.py report JOB --ok | --fail STEP [--code N]   update status.json (used by the hub's publish workflow)
-  sitekit.py keygen                 create this repo's age key pair (prints the private key once)
+  sitekit.py keygen                 point site.json at the shared data key (creates SITES_DATA_KEY once, ever)
+  sitekit.py rekey                  re-encrypt the whole `state` branch to the shared key (one-time migration)
   sitekit.py schedule               install (macOS) or print (Linux) the schedules of this machine's jobs
   sitekit.py secret NAME            print a secret (for scripts; never log the output)
   sitekit.py due JOB [--after ISO]  debug: when the job is next due and when it turns stale
@@ -44,7 +46,11 @@ try:
 except ImportError:  # pragma: no cover
     sys.exit("sitekit needs Python 3.9+")
 
-KIT_VERSION = 1
+KIT_VERSION = 2
+DATA_KEY = "SITES_DATA_KEY"            # one age key for every project's state (STANDARD.md §5.4)
+LEGACY_KEY = "STATE_AGE_KEY"           # v1 per-project key, still read so old saves can be migrated
+DEP_FILES = ("site.json", "requirements.txt", "requirements-dev.txt", "pyproject.toml", "uv.lock", "package.json",
+             "package-lock.json", "Gemfile.lock")  # a change here re-runs the setup commands after a code update
 HUB = "juanjoneri/juanjoneri.github.io"
 UTC = dt.timezone.utc
 PART_BYTES = 90 * 1024 * 1024          # GitHub rejects files over 100 MB
@@ -128,10 +134,16 @@ def p(rel):
 
 
 # ---------------------------------------------------------------------------------------------------------- secrets
+def secret_service(name):
+    """Keychain service / config path segment: the shared data key is one per machine, the rest per project."""
+    return f"site/{name}" if name == DATA_KEY else f"site/{CONF['slug']}/{name}"
+
+
 def get_secret(name):
-    """Mac Keychain `site/<slug>/<NAME>` → env `<NAME>` → file ~/.config/site/<slug>/<NAME>. Never printed."""
+    """Mac Keychain `site/<slug>/<NAME>` (shared key: `site/SITES_DATA_KEY`) → env `<NAME>` →
+    file ~/.config/site/<slug>/<NAME> (shared key: ~/.config/site/SITES_DATA_KEY). Never printed."""
     if MAC:
-        r = subprocess.run(["security", "find-generic-password", "-s", f"site/{CONF['slug']}/{name}", "-w"],
+        r = subprocess.run(["security", "find-generic-password", "-s", secret_service(name), "-w"],
                            stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, text=True)
         if r.returncode == 0:
             return r.stdout.rstrip("\n")
@@ -143,10 +155,33 @@ def get_secret(name):
                 return r.stdout.rstrip("\n")
     if os.environ.get(name):
         return os.environ[name]
-    f = Path.home() / ".config" / "site" / CONF["slug"] / name
+    f = Path.home() / ".config" / secret_service(name)
     if f.exists():
         return f.read_text().rstrip("\n")
     return None
+
+
+def secret_names():
+    return {s["name"] for s in CONF["secrets"]} | {DATA_KEY, LEGACY_KEY, "STATICRYPT_PASSWORD", "HUB_DEPLOY_KEY"}
+
+
+def clean_env(**extra):
+    """The environment without any secret: for tests and anything that runs code we haven't vetted yet."""
+    env = {k: v for k, v in os.environ.items() if k not in secret_names()}
+    env.update(extra)
+    return env
+
+
+def identity_keys():
+    """Private keys this machine can decrypt with: the shared key, plus the legacy per-project key if present."""
+    keys = [k for k in (get_secret(DATA_KEY), get_secret(LEGACY_KEY)) if k]
+    return [l.strip() for k in keys for l in k.splitlines() if l.strip().startswith("AGE-SECRET-KEY-")]
+
+
+def public_of(key):
+    r = subprocess.run(["age-keygen", "-y"], input=key + "\n", text=True, stdout=subprocess.PIPE,
+                       stderr=subprocess.PIPE)
+    return r.stdout.strip() if r.returncode == 0 else None
 
 
 # ------------------------------------------------------------------------------------------------- schedule (cron)
@@ -222,7 +257,7 @@ def stale_after(j, last_ok):
 
 
 # ------------------------------------------------------------------------------------------------------- reporting
-STATUS_KEYS = {"runs_on", "mode", "last_run", "last_ok", "result", "step", "code", "stale_after"}
+STATUS_KEYS = {"runs_on", "mode", "last_run", "last_ok", "result", "step", "code", "stale_after", "rev"}
 
 
 def read_status():
@@ -230,15 +265,26 @@ def read_status():
     return json.loads(f.read_text()) if f.exists() else {"version": 1, "slug": CONF["slug"], "jobs": {}}
 
 
-def write_status(job_name, ok, step=None, code=None, at=None):
+def head_rev():
+    r = subprocess.run(["git", "rev-parse", "--short=7", "HEAD"], cwd=ROOT, text=True, stdout=subprocess.PIPE,
+                       stderr=subprocess.DEVNULL)
+    return r.stdout.strip() or None if r.returncode == 0 else None
+
+
+def write_status(job_name, ok, step=None, code=None, at=None, ran=None, rev=None):
+    """ok: the run is healthy. ran: the job itself succeeded (defaults to ok); a run can succeed with an old code
+    version because the new one failed its test: then ran=True (last_ok moves) and ok=False (it shows as failed)."""
     j = job(job_name)
+    if step:  # status_check.py allows only these characters in step
+        step = re.sub(r"[^A-Za-z0-9 _./:-]", "", str(step))[:60]
     s = read_status()
     s["version"], s["slug"] = 1, CONF["slug"]
     rec = s["jobs"].get(job_name, {})
     at = at or now()
     rec.update(runs_on=j.get("runs_on", "mac"), mode=j.get("freshness", {}).get("mode", "alert"), last_run=iso(at),
-               result="ok" if ok else "failed", step=None if ok else step, code=None if ok else code)
-    if ok:
+               result="ok" if ok else "failed", step=None if ok else step, code=None if ok else code,
+               rev=rev or head_rev())
+    if ok if ran is None else ran:
         rec["last_ok"] = iso(at)
     rec["stale_after"] = iso(stale_after(j, parse_iso(rec.get("last_ok"))))
     s["jobs"][job_name] = {k: rec.get(k) for k in sorted(STATUS_KEYS)}
@@ -371,6 +417,16 @@ def age_recipient():
     return r
 
 
+def identity_file(tmp):
+    keys = identity_keys()
+    if not keys:
+        return None
+    f = Path(tmp) / "identity"
+    f.write_text("\n".join(keys) + "\n")
+    f.chmod(0o600)
+    return f
+
+
 def encrypt_to(src, dest_base):
     """age-encrypt src to dest_base + '.age', split into dest_base.age.000… parts when large. Returns part names."""
     tmp = dest_base.parent / (dest_base.name + ".age.tmp")
@@ -463,9 +519,17 @@ def cmd_save(a=None):
         return
     d, _ = open_branch()
     man = read_manifest(d)
+    if man.get("recipient", "legacy") != age_recipient() and (man["raw"] or man["state"] or man.get("warm")):
+        if identity_keys():
+            print("  state branch is encrypted to another key: re-encrypting it to the shared key first")
+            rekey(d, man)
+        else:
+            print(f"  warning: older saves use another key and {DATA_KEY}/{LEGACY_KEY} aren't here to migrate them")
+    if not (man["raw"] or man["state"] or man.get("warm")):
+        man["recipient"] = age_recipient()  # a fresh branch starts on the current key
     (d / "README.md").write_text(
         f"# State of {CONF['slug']}\n\nEncrypted with age (recipient in site.json). Written by sitekit; never edit.\n"
-        "Restore: `python3 .kit/sitekit.py restore` (needs STATE_AGE_KEY).\n")
+        f"Restore: `python3 .kit/sitekit.py restore` (needs {DATA_KEY}).\n")
     ts = now().strftime("%Y%m%dT%H%M%SZ")
     pending = 0
     unmarked = []  # (segment, ids): rows are marked as saved only after the push that carries them succeeds
@@ -577,9 +641,8 @@ def cmd_save(a=None):
 
 def cmd_restore(a):
     st = CONF["state"]
-    key = get_secret("STATE_AGE_KEY")
-    if not key:
-        sys.exit("STATE_AGE_KEY not found (Keychain site/<slug>/STATE_AGE_KEY, env, or ~/.config/site/<slug>/)")
+    if not identity_keys():
+        sys.exit(f"{DATA_KEY} not found (Keychain site/{DATA_KEY}, env {DATA_KEY}, or ~/.config/site/{DATA_KEY})")
     d, exists = open_branch()
     if not exists:
         print("restore: no `state` branch yet; nothing to restore")
@@ -589,9 +652,7 @@ def cmd_restore(a):
     if not a.force and any(p(x).exists() for x in targets):
         sys.exit("local state exists; use --force to overwrite it (the current files are kept as *.bak)")
     with tempfile.TemporaryDirectory() as tmp:
-        ident = Path(tmp) / "id"
-        ident.write_text(key + "\n")
-        ident.chmod(0o600)
+        ident = identity_file(tmp)
         if st["raw_db"]:
             dest = p(st["raw_db"])
             dest.parent.mkdir(parents=True, exist_ok=True)
@@ -644,22 +705,72 @@ def cmd_restore(a):
 
 
 def cmd_keygen(a):
-    if CONF["state"].get("recipient") and not a.force:
-        sys.exit("site.json already has state.recipient (use --force to replace it; old saves stay readable only "
-                 "with the old key)")
-    r = subprocess.run(["age-keygen"], text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
-    key = next(l for l in r.stdout.splitlines() if l.startswith("AGE-SECRET-KEY-"))
-    pub = re.search(r"age1[0-9a-z]+", r.stdout + r.stderr).group(0)
+    """Every project encrypts to the one shared key. With SITES_DATA_KEY on this machine, write its public half to
+    site.json; with no shared key anywhere yet (once, ever), create it."""
+    key = get_secret(DATA_KEY)
+    if key:
+        pub = public_of(key)
+        if not pub:
+            sys.exit(f"{DATA_KEY} is not a valid age key")
+        created = False
+    else:
+        if not a.new:
+            sys.exit(f"{DATA_KEY} not found on this machine. Put the shared key here (Keychain site/{DATA_KEY}, env, "
+                     f"or ~/.config/site/{DATA_KEY}) and rerun; `keygen --new` creates it, once, for all projects.")
+        r = subprocess.run(["age-keygen"], text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
+        key = next(l for l in r.stdout.splitlines() if l.startswith("AGE-SECRET-KEY-"))
+        pub = re.search(r"age1[0-9a-z]+", r.stdout + r.stderr).group(0)
+        created = True
     conf = json.loads((ROOT / "site.json").read_text())
-    conf.setdefault("state", {})["recipient"] = pub
+    old = conf.setdefault("state", {}).get("recipient")
+    conf["state"]["recipient"] = pub
     (ROOT / "site.json").write_text(json.dumps(conf, indent=2) + "\n")
-    print("Public key written to site.json (commit it).\n")
-    print("PRIVATE KEY (shown once): save it in the password manager as "
-          f"'{CONF['slug']} / STATE_AGE_KEY'. It is needed only to restore.\n")
-    print(key)
-    if MAC:
-        print("\nOptional, on a Mac that should be able to restore without the password manager:\n"
-              f"  security add-generic-password -s site/{CONF['slug']}/STATE_AGE_KEY -a \"$USER\" -w")
+    print(f"site.json state.recipient = {pub}" + (f" (was {old})" if old and old != pub else "") + ": commit it.")
+    if old and old != pub:
+        print("The next save re-encrypts the `state` branch to it (or run `sitekit.py rekey` now).")
+    if created:
+        print(f"\nPRIVATE KEY (shown once). Save it in the password manager as '{DATA_KEY}', and in the cloud "
+              f"environment Claude sessions use for these repos as the env variable {DATA_KEY}:\n")
+        print(key)
+        if MAC:
+            print(f"\nOn this Mac: security add-generic-password -s site/{DATA_KEY} -a \"$USER\" -w")
+
+
+def rekey(d, man):
+    """Re-encrypt every file of the checked-out state branch `d` to the current recipient (decrypting with every key
+    this machine has). Plaintext hashes and segment ids don't change. Caller pushes."""
+    with tempfile.TemporaryDirectory() as tmp:
+        ident = identity_file(tmp)
+        groups = [("raw", x["id"], x["parts"], x) for x in man["raw"]]
+        if man.get("raw_index"):
+            groups.append(("raw", "index", man["raw_index"], None))
+        groups += [("state", f"state-{x['at']}", x["parts"], x) for x in man["state"]]
+        groups += [("warm", re.sub(r"[^A-Za-z0-9._-]", "_", x["path"]), x["parts"], x) for x in man.get("warm", [])]
+        for folder, base, parts, entry in groups:
+            plain = Path(tmp) / "plain"
+            decrypt_parts(d / folder, parts, plain, ident)
+            new = encrypt_to(plain, d / folder / base)
+            plain.unlink()
+            if entry is None:
+                man["raw_index"] = new
+            else:
+                entry["parts"] = new
+    man["recipient"] = age_recipient()
+    print(f"  re-encrypted {len(groups)} file(s) to {age_recipient()[:16]}…")
+
+
+def cmd_rekey(a):
+    if not identity_keys():
+        sys.exit(f"rekey needs the key the state is encrypted with ({LEGACY_KEY} or {DATA_KEY}) on this machine")
+    d, exists = open_branch()
+    if not exists:
+        sys.exit("no `state` branch yet")
+    man = read_manifest(d)
+    rekey(d, man)
+    man["saved_at"] = iso(now())
+    (d / "manifest.json").write_text(json.dumps(man, indent=2) + "\n")
+    push_branch(d, f"rekey to the shared key {iso(now())}")
+    print("state branch now encrypted to the shared key")
 
 
 # ------------------------------------------------------------------------------------------------------------- run
@@ -688,8 +799,80 @@ def commit_outputs(paths, message):
     raise SystemExit("could not push outputs (the next run retries)")
 
 
+def changed_files(old, new):
+    return set(git("diff", "--name-only", old, new).splitlines()) if old != new else set()
+
+
+def update_code():
+    """Bring this checkout to origin/<branch> before a run (STANDARD.md §6.5). Fast-forward only; the job outputs and
+    status.json (which the runs themselves commit to GitHub) may be overwritten, any other local change blocks it.
+    The new code must pass `test` (fake data, no secrets) or the checkout goes back to the old commit.
+    Returns (problem or None, re-exec?)."""
+    branch = CONF.get("branch", "main")
+    r = subprocess.run(["git", "fetch", "-q", "origin", branch], cwd=ROOT, text=True, stdout=subprocess.PIPE,
+                       stderr=subprocess.PIPE)
+    if r.returncode != 0:
+        return "code update: git fetch failed", False
+    old, new = git("rev-parse", "HEAD"), git("rev-parse", f"origin/{branch}")
+    if old == new:
+        return None, False
+    if subprocess.run(["git", "merge-base", "--is-ancestor", "HEAD", f"origin/{branch}"], cwd=ROOT).returncode != 0:
+        return "code update: local commits not on GitHub", False
+    ours = {o for j in CONF["jobs"] for o in j.get("outputs", [])} | {STATUS_FILE}
+    raw = subprocess.run(["git", "status", "--porcelain", "-z", "--untracked-files=no"], cwd=ROOT, text=True,
+                         stdout=subprocess.PIPE, check=True).stdout
+    dirty = [e[3:] for e in raw.split("\0") if len(e) > 3]
+    blocking = [f for f in dirty if not any(f == o or f.startswith(o.rstrip("/") + "/") for o in ours)]
+    if blocking:
+        return f"code update: local edits in {blocking[0][:30]}", False
+    if dirty:
+        git("checkout", "-q", "--", *dirty)
+    # outputs that exist here untracked (written by runs, committed to GitHub by commit_outputs) would block the merge
+    for f in git("ls-files", "--others", "--exclude-standard", "--", *sorted(ours)).splitlines():
+        if subprocess.run(["git", "cat-file", "-e", f"origin/{branch}:{f}"], cwd=ROOT,
+                          stderr=subprocess.DEVNULL).returncode == 0:
+            (ROOT / f).unlink()
+    print(f"  code update {old[:7]} -> {new[:7]}", flush=True)
+    git("merge", "-q", "--ff-only", f"origin/{branch}")
+    files = changed_files(old, new)
+    is_ours = lambda f: any(f == o or f.startswith(o.rstrip("/") + "/") for o in ours)
+    if all(is_ours(f) for f in files):  # only the runs' own output commits: nothing to test
+        return None, False
+    conf = json.loads((ROOT / "site.json").read_text())
+    try:
+        if files & set(DEP_FILES):
+            for c in conf.get("setup", []):
+                sh(c, cwd=ROOT)
+        cmd = conf.get("test")
+        if not cmd:
+            raise RuntimeError("site.json has no test")
+        t = subprocess.run(cmd, shell=True, cwd=ROOT, env=clean_env(SITE_TEST="1", SITE_OFFLINE="1"),
+                           stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, timeout=1800)
+        if t.returncode != 0:
+            print(t.stdout[-3000:])
+            raise RuntimeError("test failed")
+    except (Exception, SystemExit) as e:
+        print(f"  {new[:7]} rejected ({e}); staying on {old[:7]}")
+        git("reset", "-q", "--hard", old)
+        return f"code update: {new[:7]} {str(e)[:30]}", False
+    git("checkout", "-q", "--", ".")  # drop whatever the test wrote into tracked files (fake outputs)
+    load()  # the new site.json
+    if MAC and any(f == "site.json" for f in files):
+        cmd_schedule()
+    return None, ".kit/sitekit.py" in files
+
+
 def cmd_run(a):
     j = job(a.job)
+    problem = None
+    if not a.offline and not a.no_update and j.get("runs_on", "mac") != "actions":
+        problem, reexec = update_code()
+        if reexec:  # the kit itself changed: continue with the new one
+            sys.stdout.flush()
+            args = [sys.executable, str(ROOT / ".kit" / "sitekit.py"), "run", a.job, "--no-update"] + \
+                (["--no-push"] if a.no_push else [])
+            os.execv(sys.executable, args)
+        j = job(a.job)
     if not j.get("command"):
         sys.exit(f"{a.job} runs on {j.get('runs_on', '?')} and has no local command"
                  + (f"; build offline with: {CONF['build_offline']}" if CONF.get("build_offline") else ""))
@@ -703,7 +886,7 @@ def cmd_run(a):
         lock.mkdir()
     started = now()
     print(f"=== {iso(started)} {CONF['slug']} / {a.job} ===", flush=True)
-    step, code = "update", 0
+    step, code = "run", 0
     try:
         env = dict(os.environ, SITE_OFFLINE="1" if a.offline else "0", SITE_JOB=a.job)
         for name in j.get("secrets", []):
@@ -736,10 +919,22 @@ def cmd_run(a):
         sys.exit(1)
     finally:
         lock.rmdir() if lock.exists() else None
-    write_status(a.job, True, at=started)
+    write_status(a.job, problem is None, step=problem, ran=True, at=started)
     if not a.offline and not a.no_push:
         commit_outputs(j.get("outputs", []), f"{a.job}: run {iso(started)}")
-    print(f"=== ok ({int((now() - started).total_seconds())}s) ===")
+    print(f"=== ok ({int((now() - started).total_seconds())}s){' but ' + problem if problem else ''} ===")
+
+
+def cmd_test(a=None):
+    cmd = CONF.get("test")
+    if not cmd:
+        sys.exit("site.json has no `test`: a command that builds the outputs from committed fake data "
+                 "(STANDARD.md §8)")
+    print(f"  $ {cmd}  (fake data, no secrets)")
+    code = subprocess.run(cmd, shell=True, cwd=ROOT, env=clean_env(SITE_TEST="1", SITE_OFFLINE="1")).returncode
+    if a is not None:
+        sys.exit(code)
+    return code
 
 
 # ------------------------------------------------------------------------------------------------------ schedules
@@ -877,7 +1072,11 @@ def cmd_doctor(a):
             D.bad(f"{s['name']} missing", s.get("fix", f"Keychain site/{CONF['slug']}/{s['name']}"),
                   required=used_here and s.get("required", True))
     if CONF["state"].get("recipient"):
-        D.ok("state.recipient", CONF["state"]["recipient"][:16] + "…")
+        key = get_secret(DATA_KEY)
+        if key and public_of(key) != CONF["state"]["recipient"]:
+            D.bad("state.recipient is not the shared key's public half", "run `sitekit.py keygen` and commit site.json")
+        else:
+            D.ok("state.recipient", CONF["state"]["recipient"][:16] + "…" + (" = shared key" if key else ""))
     elif any(CONF["state"].get(k) for k in ("state_db", "raw_db")):
         D.bad("no state.recipient in site.json", "run `sitekit.py keygen` once and commit site.json")
 
@@ -886,7 +1085,7 @@ def cmd_doctor(a):
         rel = CONF["state"].get(k)
         if rel:
             D.ok(rel, f"{p(rel).stat().st_size / 1e6:.1f} MB") if p(rel).exists() else \
-                D.bad(f"{rel} missing", "run `sitekit.py restore` (needs STATE_AGE_KEY)")
+                D.bad(f"{rel} missing", f"run `sitekit.py restore` (needs {DATA_KEY})")
     if any(CONF["state"].get(k) for k in ("state_db", "raw_db")):
         r = subprocess.run(["git", "ls-remote", "origin", "refs/heads/state"], cwd=ROOT, text=True,
                            stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -960,6 +1159,14 @@ def cmd_doctor(a):
         r = subprocess.run(c["cmd"], shell=True, cwd=ROOT, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
         D.ok(c["name"]) if r.returncode == 0 else D.bad(f"{c['name']}: {r.stdout.strip()[-200:]}", c.get("fix", ""),
                                                         c.get("required", True))
+    print("fake data")
+    if not CONF.get("test"):
+        D.bad("site.json has no `test`", "add a command that builds the outputs from committed fake data (§8)")
+    elif not a.quick:
+        r = subprocess.run(CONF["test"], shell=True, cwd=ROOT, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                           text=True, env=clean_env(SITE_TEST="1", SITE_OFFLINE="1"))
+        D.ok(CONF["test"]) if r.returncode == 0 else D.bad(f"`{CONF['test']}` failed: {r.stdout.strip()[-300:]}",
+                                                           "fix the build or the fake data")
     if CONF.get("build_offline") and not a.quick:
         print("offline build")
         r = subprocess.run(CONF["build_offline"], shell=True, cwd=ROOT, stdout=subprocess.PIPE,
@@ -998,11 +1205,11 @@ def cmd_setup(a):
     if any(st.get(k) for k in ("raw_db", "state_db")):
         missing = [x for x in (st["raw_db"], st["state_db"]) if x and not p(x).exists()]
         if missing:
-            if get_secret("STATE_AGE_KEY"):
+            if identity_keys():
                 print("restore")
                 cmd_restore(argparse.Namespace(force=False))
             else:
-                print(f"state missing ({', '.join(missing)}) and no STATE_AGE_KEY: set it, then rerun setup")
+                print(f"state missing ({', '.join(missing)}) and no {DATA_KEY}: set it, then rerun setup")
     if local_jobs() and not a.no_schedule:
         print("schedules")
         cmd_schedule()
@@ -1031,15 +1238,20 @@ def cmd_recovery(a=None):
             L.append(f"   - `site/{slug}/{s['name']}` ← password manager `{slug} / {s['name']}`"
                      + (f" ({s['fix']})" if s.get("fix") else ""))
         if has_state:
-            L.append(f"   - `site/{slug}/STATE_AGE_KEY` ← password manager `{slug} / STATE_AGE_KEY` "
-                     "(needed to restore the state; it can be removed from the Keychain afterwards)")
+            L.append(f"   - `site/{DATA_KEY}` ← password manager `{DATA_KEY}` (the shared data key of every project; "
+                     "needed to restore the state)")
         n += 1
     does = ["runs the setup commands"] + (["restores the state from the `state` branch"] if has_state else []) + \
         (["installs the schedules"] if local_jobs() else []) + ["runs `./doctor`"]
     L.append(f"{n}. `./setup`: {', '.join(does[:-1])} and {does[-1]}. Repeat until doctor shows ✅ ready.")
     n += 1
     proof = f"`{CONF['build_offline']}`" if CONF.get("build_offline") else "`./run <job> --offline`"
-    L += [f"{n}. Prove it: {proof} must build the same output as before, offline (the acceptance test).", ""]
+    L += [f"{n}. Prove it: {proof} must build the same output as before, offline (the acceptance test).", "",
+          "## Cloud sessions (no Mac)", "",
+          f"- Fake data, no key: `python3 .kit/sitekit.py test` (`{CONF.get('test', 'site.json test')}`).",
+          f"- Real data: with `{DATA_KEY}` in the environment, `./setup` restores the state; "
+          + (f"`{CONF['build_offline']}` rebuilds the outputs." if CONF.get("build_offline") else "then run offline."),
+          "- Code pushed to `main` runs on the Mac at its next scheduled run, if `test` passes (STANDARD.md §6.5).", ""]
     gh = [s for s in CONF["secrets"] if s.get("where") == "actions"]
     if gh:
         L += ["## GitHub Actions secrets (repo Settings → Secrets → Actions)", ""]
@@ -1071,13 +1283,15 @@ def main():
     s = sub.add_parser("setup"); s.add_argument("--update", metavar="HUB_REF"); s.add_argument("--no-schedule", action="store_true")
     s = sub.add_parser("doctor"); s.add_argument("--quick", action="store_true")
     s = sub.add_parser("run"); s.add_argument("job"); s.add_argument("--offline", action="store_true"); s.add_argument("--no-push", action="store_true")
+    s.add_argument("--no-update", action="store_true", help="don't pull code from GitHub first")
+    sub.add_parser("test"); sub.add_parser("rekey")
     s = sub.add_parser("ingest"); s.add_argument("source"); s.add_argument("paths", nargs="+")
     s.add_argument("--prefix", default=""); s.add_argument("--meta")
     s = sub.add_parser("save"); s.add_argument("--warm", action="store_true")
     s = sub.add_parser("restore"); s.add_argument("--force", action="store_true")
     s = sub.add_parser("report"); s.add_argument("job"); s.add_argument("--ok", action="store_true")
     s.add_argument("--fail", metavar="STEP"); s.add_argument("--code", type=int)
-    s = sub.add_parser("keygen"); s.add_argument("--force", action="store_true")
+    s = sub.add_parser("keygen"); s.add_argument("--new", action="store_true")
     sub.add_parser("schedule")
     s = sub.add_parser("secret"); s.add_argument("name")
     s = sub.add_parser("due"); s.add_argument("job"); s.add_argument("--after")
@@ -1086,7 +1300,8 @@ def main():
     load()
     fn = {"setup": cmd_setup, "doctor": lambda a: sys.exit(1 if cmd_doctor(a) else 0), "run": cmd_run,
           "ingest": cmd_ingest, "save": cmd_save, "restore": cmd_restore, "report": cmd_report, "keygen": cmd_keygen,
-          "schedule": cmd_schedule, "secret": cmd_secret, "due": cmd_due, "recovery": cmd_recovery}[a.cmd]
+          "schedule": cmd_schedule, "secret": cmd_secret, "due": cmd_due, "recovery": cmd_recovery,
+          "test": cmd_test, "rekey": cmd_rekey}[a.cmd]
     fn(a)
 
 

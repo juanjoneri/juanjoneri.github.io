@@ -79,6 +79,13 @@ jobs:
       - name: Slug
         run: echo "SLUG=${GITHUB_REPOSITORY#*/}" >> "$GITHUB_ENV"
 
+      - name: Fake-data test (STANDARD.md §8)
+        run: |
+          # Every project builds from committed fake data, with no secrets, before the real build runs.
+          if [ ! -f site.json ]; then echo "::error::no site.json: registered projects follow STANDARD.md"; exit 1; fi
+          python3 .hub/kit/sitekit.py test
+          git checkout -q -- . && git clean -qfdx -e .hub   # nothing the test wrote reaches the real build
+
       - name: Build
         env:
           BUILD_ENV: ${{ secrets.BUILD_ENV }}
