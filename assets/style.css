@@ -73,8 +73,8 @@ td.good { color: var(--good); } td.warn { color: var(--warn); } td.bad { color: 
 @media (hover: hover) { .btn:not(.on):hover { border-color: var(--muted); } }
 
 /* rows of pills: .pills wraps, .pill-row scrolls sideways (tabs, ranges) */
-.pills { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0 10px; }
-.pill-row { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; padding: 7px 2px; margin: 0 -2px 4px; scroll-snap-type: x proximity; }
+.pills { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 6px 0 10px; }
+.pill-row { display: flex; align-items: center; gap: 6px; overflow-x: auto; scrollbar-width: none; padding: 7px 2px; margin: 0 -2px 4px; scroll-snap-type: x proximity; }
 .pill-row::-webkit-scrollbar { display: none; }
 .pill-row > * { scroll-snap-align: start; flex: none; }
 .pill-row .spacer { flex: 1; }
@@ -112,7 +112,7 @@ svg[data-scrub] { touch-action: pan-y; cursor: crosshair; }
 /* status (STANDARD.md §7): compact dot + age; tap for details */
 .ui-status { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; color: var(--muted); line-height: 1;
   background: none; border: 0; padding: 6px 4px; font-family: inherit; cursor: pointer; position: relative; }
-.ui-status::after { content: ""; position: absolute; inset: -6px; }
+.ui-status::after { content: ""; position: absolute; inset: -13px -4px; }  /* 44px tap area */
 .ui-status .t { display: block; text-box: trim-both cap alphabetic; }
 .ui-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--muted); flex: none; }
 .status-ok .ui-dot { background: var(--good); box-shadow: 0 0 0 3px #3fb95026; }
