@@ -82,6 +82,13 @@ td.good { color: var(--good); } td.warn { color: var(--warn); } td.bad { color: 
 /* top bar: hub button, title, status, actions */
 .topbar { position: sticky; top: 0; z-index: 5; display: flex; align-items: center; gap: 6px; padding: 6px 0; margin: 0 0 4px; background: var(--bg); }
 .topbar h1 { margin: 0 auto 0 4px; font-size: 14px; }
+/* sticky header: top bar + tabs stay on screen. <header class="ui-head"><div class="topbar">…</div><div class="pill-row" data-tabs>…</div></header>
+   ui.js adds .stuck (a hairline and shadow) once the page scrolls under it. */
+.ui-head { position: sticky; top: 0; z-index: 5; background: var(--bg); margin: 0 -12px 4px; padding: 0 12px;
+  transition: box-shadow var(--mid) var(--ease); }
+.ui-head .topbar { position: static; margin: 0; }
+.ui-head .pill-row { margin-bottom: 0; padding-bottom: 6px; }
+.ui-head.stuck { box-shadow: 0 1px 0 var(--line), 0 8px 12px -8px #000c; }
 /* older pages: .bar (label + "← hub" link) gets the same compact look */
 .bar { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 8px; }
 .bar a { color: var(--muted); text-decoration: none; position: relative; padding: 6px 10px; border: 1px solid var(--line); border-radius: var(--pill); font-size: 12px; line-height: 1; }
