@@ -6,6 +6,7 @@ file. The served landing page (`index.html`) only lists the sites: no architectu
 
 ## Layout
 - `index.html` — the landing page: only the list of sites, generated at deploy time from `registry.json` and the site branches (placeholder `<!-- SITES -->`).
+- Only `index.html`, `404.html`, `apple-touch-icon.png` and `assets/` are deployed (allowlist in `assemble.sh`); docs, `kit/`, `registry.json` and everything else stay in the repo only.
 - `MANUAL.md` — the manual (not deployed).
 - `STANDARD.md` — the private-project standard every registered repo follows; `kit/sitekit.py` + `kit/template/` implement it (vendored into each project as `.kit/sitekit.py`).
 - `assets/style.css` — shared tokens and components. `assets/unlock.html` — StatiCrypt template. `assets/favicon.svg`.
@@ -45,7 +46,7 @@ file. The served landing page (`index.html`) only lists the sites: no architectu
 - Only Juan edits the `cron` line in `deploy.yml` (GitHub runs a schedule as whoever last changed it).
 - New site: its first publish prints "signing key (public, for registry.json)" in the push-job log; add it as `key` in
   `registry.json` (PR). Until then the site is not deployed (`require_signatures: true`).
-- Deploy log lines to check: `✓ /p/<slug> (N page(s)) signed`; errors name the reason (bad signature or manifest,
+- Deploy log lines to check: `✓ /p/<slug> (N page(s)) signed`; a rejected site is listed as "not published" ⚠️ on the landing page and fails the deploy run (email); errors name the reason (bad signature or manifest,
   unsigned, non-HTML, unencrypted).
 - Repo settings that are part of the security model (Juan's, not visible to Claude): ruleset `protect master`
   (restrict updates/deletions, block force pushes, bypass = repository admin), workflow token read-only,

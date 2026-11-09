@@ -5,18 +5,20 @@ OUT=_site
 MARKER='id="staticrypt-form"'
 rm -rf "$OUT" && mkdir -p "$OUT"
 
-# Public files = everything tracked on master, minus repo plumbing.
-git archive HEAD | tar -x -C "$OUT"
-# archive/ (2018 portfolio) is kept in the repo for posterity but not deployed.
-rm -rf "$OUT/.github" "$OUT/p" "$OUT/archive" "$OUT/CLAUDE.md" "$OUT/MANUAL.md" "$OUT/README.md" "$OUT/registry.json" "$OUT/.gitignore" "$OUT/.gitattributes"
+# Public files: an allowlist, so docs, tooling and anything added later are never served by default.
+PUBLIC=(index.html 404.html apple-touch-icon.png assets)
+git archive HEAD "${PUBLIC[@]}" | tar -x -C "$OUT"
 touch "$OUT/.nojekyll"
+# Sites that failed a check. They are not deployed; the landing page marks them and deploy.yml fails the run (email).
+REJECTED=()
+reject() { echo "::error::$1 rejected — $2"; REJECTED+=("$1"); }
 
 # Registered sites. Branches not in registry.json are never published.
 REQUIRE_SIG=$(jq -r '.require_signatures // false' registry.json)
 rm -rf _status
 ROWS=""
 for slug in $(jq -r '.sites[].slug' registry.json); do
-  if [[ ! "$slug" =~ ^[A-Za-z0-9._-]+$ ]]; then echo "::error::invalid slug '$slug'"; continue; fi
+  if [[ ! "$slug" =~ ^[A-Za-z0-9._-]+$ ]]; then echo "::error::invalid slug '$slug'"; REJECTED+=("invalid-slug"); continue; fi
   if ! git fetch -q --depth 1 origin "+refs/heads/site/$slug:refs/remotes/origin/site/$slug" 2>/dev/null; then
     echo "::warning::$slug is registered but has never been published (no site/$slug branch)"; continue
   fi
@@ -30,11 +32,11 @@ for slug in $(jq -r '.sites[].slug' registry.json); do
        || [ "$(head -1 "$tmp/_site.manifest")" != "slug: $slug" ] \
        || ! (cd "$tmp" && tail -n +2 _site.manifest | sha256sum -c --strict --quiet) \
        || [ "$(tail -n +2 "$tmp/_site.manifest" | sed 's/^[0-9a-f]*  //' | LC_ALL=C sort)" != "$(cd "$tmp" && find . -type f \( -name '*.html' -o -path ./status.json \) | LC_ALL=C sort)" ]; then
-      echo "::error::$slug rejected — bad signature or manifest"; continue
+      reject "$slug" "bad signature or manifest"; continue
     fi
     signed=" signed"
   elif [ "$REQUIRE_SIG" = "true" ]; then
-    echo "::error::$slug rejected — unsigned or no key in registry.json"; continue
+    reject "$slug" "unsigned or no key in registry.json"; continue
   else
     echo "::warning::$slug is not signed (or has no key in registry.json)"; signed=""
   fi
@@ -53,7 +55,7 @@ for slug in $(jq -r '.sites[].slug' registry.json); do
   plain=""
   for f in $html; do grep -q "$MARKER" "$tmp/$f" || plain="$plain $f"; done
   if [ -z "$html" ] || [ -n "$non_html" ] || [ -n "$plain" ]; then
-    echo "::error::$slug rejected — non-HTML files: [${non_html//$'\n'/ }] unencrypted HTML: [$plain]"; continue
+    reject "$slug" "non-HTML files: [${non_html//$'\n'/ }] unencrypted HTML: [$plain]"; continue
   fi
   mkdir -p "$OUT/p/$slug" && cp -r "$tmp"/. "$OUT/p/$slug/"
   [ -f "$tmp/status.json" ] && mkdir -p _status && cp "$tmp/status.json" "_status/$slug.json"
@@ -62,6 +64,15 @@ for slug in $(jq -r '.sites[].slug' registry.json); do
   ts=$(git log -1 --format=%cI "origin/site/$slug")
   when=$([ -n "$ts" ] && TZ=America/Los_Angeles date -d "$ts" '+%b %-d, %-I:%M %p' || echo "—")
   ROWS+="    <a class=\"site\" href=\"/p/$slug/\"><span class=\"name\">$title<span data-status-slug=\"$slug\"></span></span><time class=\"when\" datetime=\"$ts\">$when</time><span class=\"go\">›</span></a>"$'\n'
+done
+
+# Rejected sites: a row (no link: their pages are not deployed) with the warning sign, and a list for deploy.yml.
+: > .rejected
+for slug in "${REJECTED[@]}"; do
+  echo "$slug" >> .rejected
+  [ "$slug" = "invalid-slug" ] && continue
+  title=$(echo "$slug" | sed -E 's/[-_.]+/ /g; s/\b(.)/\u\1/g')
+  ROWS+="    <div class=\"site\" title=\"not published: failed a check (see the deploy log)\"><span class=\"name\">$title ⚠️</span><span class=\"when\">not published</span></div>"$'\n'
 done
 
 # Deploy state written by deploy.yml (master + site branch SHAs); published so the next run can skip if unchanged.
