@@ -9,6 +9,7 @@ file. The served landing page (`index.html`) only lists the sites: no architectu
 - `MANUAL.md` — the manual (not deployed).
 - `STANDARD.md` — the private-project standard every registered repo follows; `kit/sitekit.py` + `kit/template/` implement it (vendored into each project as `.kit/sitekit.py`).
 - `assets/style.css` — shared tokens and components. `assets/unlock.html` — StatiCrypt template. `assets/favicon.svg`.
+- `apple-touch-icon.png` — 180×180 home-screen icon (the favicon design, full-bleed). iOS ignores SVG favicons and requests `/apple-touch-icon.png` at the root for every page, so every site (encrypted pages included) gets it without a link tag.
 - `registry.json` — allowlist of private sites: `slug` (= private repo name) and `key` (public half of that repo's deploy key, which signs its pages). `require_signatures: true` rejects any unsigned or wrongly signed site.
 - `.github/workflows/publish.yml` — reusable workflow private repos call. Job `build` (build → encrypt; never sees the deploy key) and job `push` (signs a manifest of the files with the deploy key, force-pushes `site/<slug>`; runs no repo code). Private repos never write `master`.
 - `.github/staticrypt/` — package.json + lockfile; installed with `npm ci --ignore-scripts`.
