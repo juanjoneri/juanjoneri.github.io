@@ -24,14 +24,14 @@
     var stale = j.stale_after ? Date.parse(j.stale_after) : null;
     if (j.result === "failed") {
       return { level: "failed", text: name + ": failed at " + (j.step || "?") + " " + ago(now - Date.parse(j.last_run)) + " ago" +
-        (lastOk ? " · last ok " + when(j.last_ok) : "") };
+        (lastOk ? " · last ok " + when(j.last_ok) : "") + (j.rev ? " · code " + j.rev : "") };
     }
     if (!lastOk) return { level: "unknown", text: name + ": no successful run yet" };
     if (stale && now > stale) {
       if (j.mode === "reminder") return { level: "reminder", text: name + ": no new data for " + ago(now - lastOk) };
       return { level: "stale", text: name + ": stale, last ok " + when(j.last_ok) + " (" + ago(now - lastOk) + " ago)" };
     }
-    return { level: "ok", text: name + ": ok · " + ago(now - lastOk) + " ago" };
+    return { level: "ok", text: name + ": ok · " + ago(now - lastOk) + " ago" + (j.rev ? " · code " + j.rev : "") };
   }
 
   function landing() {

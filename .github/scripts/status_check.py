@@ -43,7 +43,7 @@ if not isinstance(jobs, dict) or len(jobs) > 10:
 for name, j in jobs.items():
     if not NAME.match(name) or not isinstance(j, dict):
         bad(f"bad job {name!r}")
-    extra = set(j) - {"runs_on", "mode", "last_run", "last_ok", "result", "step", "code", "stale_after"}
+    extra = set(j) - {"runs_on", "mode", "last_run", "last_ok", "result", "step", "code", "stale_after", "rev"}
     if extra:
         bad(f"{name}: unexpected keys {sorted(extra)}")
     for k, allowed in FIELDS.items():
@@ -54,5 +54,7 @@ for name, j in jobs.items():
             bad(f"{name}.{k} is not a UTC timestamp")
     if j.get("step") is not None and not (isinstance(j["step"], str) and STEP.match(j["step"])):
         bad(f"{name}.step has unexpected characters")
+    if j.get("rev") is not None and not (isinstance(j["rev"], str) and re.match(r"^[0-9a-f]{7,40}$", j["rev"])):
+        bad(f"{name}.rev must be a commit hash")
     if j.get("code") is not None and not (isinstance(j["code"], int) and 0 <= j["code"] < 1000):
         bad(f"{name}.code must be a small integer")
