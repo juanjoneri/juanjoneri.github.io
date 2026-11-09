@@ -5,23 +5,51 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>juanjoneri.github.io</title>
 <meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#0e0e0d">
 <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="/assets/style.css">
 <style>
-  @media (max-width: 560px) { .hide-sm { display: none; } }
+  /* landing only: one tappable row per site, grouped in a rounded list */
+  .sites { margin: 8px 0 10px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
+  .site { display: flex; align-items: center; gap: 10px; min-height: 52px; padding: 8px 12px; color: var(--fg); text-decoration: none;
+    border-top: 1px solid var(--line); transition: background var(--mid) var(--ease); }
+  .site:first-child { border-top: 0; }
+  .site:active { background: var(--raise); }
+  @media (hover: hover) { .site:hover { background: var(--raise); } }
+  .site .name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .site .when { font-size: 11px; color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .site .go { color: var(--muted); transition: transform var(--fast) var(--ease); }
+  .site:active .go { transform: translateX(3px); }
+  .site.empty { color: var(--muted); }
 </style>
 </head>
 <body>
 <main>
-  <div class="label">juanjoneri.github.io</div>
-  <h1>Sites</h1>
-  <table>
-    <tr><th>site</th><th class="hide-sm">path</th><th class="num">updated</th></tr>
+  <div class="topbar"><h1>Sites</h1></div>
+  <nav class="sites" aria-label="sites">
 <!-- SITES -->
-  </table>
+  </nav>
   <p class="muted">🔒 each site has its own password.</p>
 <!-- STATUS -->
 <script src="/assets/status.js"></script>
+<script>
+  // "updated" as an age (12m, 3h, 2d); the exact time stays in the tooltip.
+  (function () {
+    function age(ms) {
+      var m = Math.max(0, Math.round(ms / 60000));
+      return m < 60 ? m + "m ago" : m < 2880 ? Math.round(m / 60) + "h ago" : Math.round(m / 1440) + "d ago";
+    }
+    function tick() {
+      document.querySelectorAll("time.when[datetime]").forEach(function (t) {
+        var d = Date.parse(t.getAttribute("datetime"));
+        if (isNaN(d)) return;
+        if (!t.title) t.title = t.textContent;
+        t.textContent = age(Date.now() - d);
+      });
+    }
+    tick(); setInterval(tick, 60000);
+  })();
+</script>
 </main>
 </body>
 </html>
