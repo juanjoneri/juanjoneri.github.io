@@ -67,6 +67,8 @@ td.good { color: var(--good); } td.warn { color: var(--warn); } td.bad { color: 
 .chip.warn { border-color: #4a3d1a; } .chip.warn b { color: var(--warn); }
 .e { font-size: 1.1em; line-height: 0; vertical-align: -.03em; margin-right: 6px; }
 .btn.icon .e { margin: 0; vertical-align: 0; }
+.btn.back { flex: none; padding-left: 14px; padding-right: 14px; }   /* ← 🏠 back to all sites */
+.btn.back .e { margin: 0 0 0 6px; }
 @supports not (text-box: trim-both cap alphabetic) {
   .btn { padding: 10px 12px 8px; } .chip { padding: 7px 10px 5px; }
 }
