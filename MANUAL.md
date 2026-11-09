@@ -73,7 +73,7 @@ Nothing encrypted is committed to `master`, so changing a password fully retires
 | entry | `dist/index.html` is required. |
 | subpages | Any `dist/**/*.html`. `dist/q3/index.html` → `/p/<repo>/q3/`. Link with relative paths. |
 | files | **Only .html.** Inline CSS, JS, SVG charts and images (data URIs). Anything else would be published unencrypted, so the build fails. |
-| shared | May reference public `/assets/style.css`, `/assets/favicon.svg` and `/assets/status.js`. No third-party scripts. |
+| shared | May reference public `/assets/style.css`, `/assets/favicon.svg`, `/assets/status.js` and `/assets/ui.js`. No third-party scripts. The iPhone home-screen icon is `/apple-touch-icon.png` at the root, which iOS picks up for every page. |
 | status | Every page includes the status block (`STANDARD.md` §7.3); job health shows inside the encrypted page only. |
 | title | The repo name in title case, everywhere: `airtable-debts` → **Airtable Debts** (landing page, unlock screen, browser tab, page `<title>` and heading). Subpages: `Airtable Debts · Details`. |
 | head | `<meta name="robots" content="noindex, nofollow">` |
