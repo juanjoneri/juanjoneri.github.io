@@ -12,7 +12,9 @@
    Expand all  <button class="btn" data-expand-all="#list">expand all</button>  toggles every <details> inside #list.
    Scrubbing   <svg viewBox="0 0 300 46" data-scrub='[[x,y,"label"],…]'> (x,y in viewBox units)
                + <div data-scrub-label="same-id-as-svg"></div>. Drag across the chart to read values; vertical
-               scrolling keeps working (touch-action: pan-y). Tap to pin.  */
+               scrolling keeps working (touch-action: pan-y). Tap to pin.
+   Sticky head <header class="ui-head">top bar + tabs</header> gets .stuck while content scrolls under it; switching
+               tabs while scrolled down starts the new panel at its top, just under the header.  */
 (function () {
   "use strict";
   var reduce = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -37,6 +39,12 @@
       });
       if (t.scrollIntoView) t.scrollIntoView({ block: "nearest", inline: "center", behavior: reduce ? "auto" : "smooth" });
       if (push) history.replaceState(null, "", "#" + id);
+      // scrolled down past the panels' top under a sticky header: show the new panel from its top
+      var head = row.closest(".ui-head"), p0 = panel(id);
+      if (push && head && p0) {
+        var top = p0.getBoundingClientRect().top - head.getBoundingClientRect().bottom;
+        if (top < 0) window.scrollBy(0, top - 8);
+      }
     }
     row.setAttribute("role", "tablist");
     tabs.forEach(function (t) {
@@ -129,7 +137,17 @@
     document.addEventListener("pointerdown", function (e) { if (!svg.contains(e.target)) { pinned = false; clear(); } });
   }
 
+  // ---------------------------------------------------------------- sticky header shadow
+  function initHead(head) {
+    if (!window.IntersectionObserver) return;
+    var mark = document.createElement("div");
+    mark.style.height = "1px"; mark.setAttribute("aria-hidden", "true");
+    head.parentNode.insertBefore(mark, head);
+    new IntersectionObserver(function (es) { head.classList.toggle("stuck", !es[0].isIntersecting); }).observe(mark);
+  }
+
   function init() {
+    document.querySelectorAll(".ui-head").forEach(initHead);
     document.querySelectorAll("[data-tabs]").forEach(initTabs);
     document.querySelectorAll("[data-choice]").forEach(initChoice);
     document.querySelectorAll("[data-expand-all]").forEach(initExpandAll);

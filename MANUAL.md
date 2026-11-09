@@ -110,6 +110,9 @@ blue `▍`; numbers right-aligned with `tabular-nums` (`td.num`), k/M abbreviati
 <div class="pill-row" data-tabs="main"><button class="btn" data-tab="market"><span class="e">📈</span>Market</button> …</div>
 <section data-panel="market">…</section>
 
+<!-- sticky header: wrap the top bar and the tabs so both stay on screen (a hairline appears once content scrolls under) -->
+<header class="ui-head"><div class="topbar">…</div><div class="pill-row" data-tabs="main">…</div></header>
+
 <!-- values -->
 <div class="pills"><span class="chip good">owed <b>$4,135</b></span><span class="chip warn"><span class="e">⚠️</span><b>3</b> to review</span></div>
 
