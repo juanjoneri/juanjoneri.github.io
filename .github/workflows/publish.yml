@@ -30,7 +30,7 @@ on:
       hub_ref:
         description: Hub commit to take scripts, template and staticrypt lockfile from (use the same SHA as in `uses:`)
         type: string
-        default: master
+        required: true
       job:
         description: Name of the site.json job this run performs (a GitHub Actions job); recorded as ok in status.json
         type: string
