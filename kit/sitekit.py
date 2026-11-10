@@ -738,8 +738,8 @@ def cmd_keygen(a):
     if old and old != pub:
         print("The next save re-encrypts the `state` branch to it (or run `sitekit.py rekey` now).")
     if created:
-        print(f"\nPRIVATE KEY (shown once). Save it in the password manager as '{DATA_KEY}', and in the cloud "
-              f"environment Claude sessions use for these repos as the env variable {DATA_KEY}:\n")
+        print(f"\nPRIVATE KEY (shown once). Save it in the password manager as '{DATA_KEY}'. Cloud Claude sessions "
+              f"get it (env variable {DATA_KEY}) only for a task that needs the real data (STANDARD.md 5.4):\n")
         print(key)
         if MAC:
             print(f"\nOn this Mac: security add-generic-password -s site/{DATA_KEY} -a \"$USER\" -w")
