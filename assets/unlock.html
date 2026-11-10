@@ -5,6 +5,11 @@
 <title>/*[|template_title|]*/0</title>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <meta name="robots" content="noindex, nofollow" />
+<!-- Applies to the decrypted page too (it replaces this document's content, not the document). Every page on this
+     origin can read every site's remembered key, so a page may only load from this origin and may not send data out:
+     no third-party scripts (CLAUDE.md rule 6), no eval, no fetch/image/form to other hosts. Inline CSS/JS stay allowed
+     (pages are single HTML files). Links to other sites still work. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:; connect-src 'self'; base-uri 'none'; form-action 'none'" />
 <meta http-equiv="cache-control" content="no-cache" />
 <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml" />
 <style>
