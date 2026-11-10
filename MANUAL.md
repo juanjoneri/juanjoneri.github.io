@@ -106,7 +106,7 @@ blue `▍`; numbers right-aligned with `tabular-nums` (`td.num`), k/M abbreviati
 <div class="topbar"><a class="btn back" href="/" aria-label="all sites">←<span class="e">🏠</span></a><h1>Airtable Debts</h1>
   <div data-site-status="airtable-debts"></div></div>
 
-<!-- tabs: one scrolling row; swipe between panels; the open tab is kept in the URL (#market) -->
+<!-- tabs: one scrolling row (the edge fades where more pills are hidden); swipe between panels; the open tab is kept in the URL (#market) -->
 <div class="pill-row" data-tabs="main"><button class="btn" data-tab="market"><span class="e">📈</span>Market</button> …</div>
 <section data-panel="market">…</section>
 

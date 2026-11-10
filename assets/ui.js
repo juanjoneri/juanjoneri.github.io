@@ -13,6 +13,7 @@
    Scrubbing   <svg viewBox="0 0 300 46" data-scrub='[[x,y,"label"],…]'> (x,y in viewBox units)
                + <div data-scrub-label="same-id-as-svg"></div>. Drag across the chart to read values; vertical
                scrolling keeps working (touch-action: pan-y). Tap to pin.
+   Pill rows   Every .pill-row that scrolls sideways fades the edge where more pills are hidden (.ui-more-l / .ui-more-r).
    Sticky head <header class="ui-head">top bar + tabs</header> gets .stuck while content scrolls under it; switching
                tabs while scrolled down starts the new panel at its top, just under the header.  */
 (function () {
@@ -146,7 +147,23 @@
     new IntersectionObserver(function (es) { head.classList.toggle("stuck", !es[0].isIntersecting); }).observe(mark);
   }
 
+  // ---------------------------------------------------------------- pill rows: fade the edge that hides more pills
+  function initRow(row) {
+    if (row.getAttribute("data-ui-row")) return;
+    row.setAttribute("data-ui-row", "1");
+    function update() {
+      var max = row.scrollWidth - row.clientWidth;
+      row.classList.toggle("ui-more-l", row.scrollLeft > 2);
+      row.classList.toggle("ui-more-r", max - row.scrollLeft > 2);
+    }
+    row.addEventListener("scroll", update, { passive: true });
+    window.addEventListener("resize", update);
+    if (window.ResizeObserver) new ResizeObserver(update).observe(row);
+    update();
+  }
+
   function init() {
+    document.querySelectorAll(".pill-row").forEach(initRow);
     document.querySelectorAll(".ui-head").forEach(initHead);
     document.querySelectorAll("[data-tabs]").forEach(initTabs);
     document.querySelectorAll("[data-choice]").forEach(initChoice);
