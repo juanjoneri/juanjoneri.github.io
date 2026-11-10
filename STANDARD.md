@@ -5,7 +5,7 @@ Every private project registered on https://juanjoneri.github.io follows this st
   exactly where it was.
 - **Run from GitHub:** with the Mac on but nobody at it, every change is made by pushing to the private repo. Code, data
   rules and schedules all reach the Mac at its next run (§6.5); a Claude session works on fake data without any key,
-  or on the real data with the shared key (§5.4).
+  or, when Juan gives it the shared key for a task, on the real data (§5.4).
 
 The shared tooling is `kit/sitekit.py` in this repo (Python 3.9+, standard library only, plus `git` and `age`).
 
@@ -133,10 +133,14 @@ segments. Rows are marked saved only after the push that carries them succeeds.
 5.4 **Encryption: [age](https://age-encryption.org) with ONE shared key, `SITES_DATA_KEY`.**
 - Every project encrypts its state to the same public key (`site.json` `state.recipient`; `keygen` writes it from
   the private key on the machine, and `doctor` checks they match).
-- The private key lives in exactly two places: the password manager (`SITES_DATA_KEY`) and the **cloud environment**
-  Claude sessions use for these private repos (environment variable `SITES_DATA_KEY`). That environment is used only
-  for these repos, so unrelated sessions never hold the key. A Mac that should restore without the password manager
-  can also hold it in the Keychain (`site/SITES_DATA_KEY`).
+- The private key lives in the password manager (`SITES_DATA_KEY`). A Mac that should restore without the password
+  manager can also hold it in the Keychain (`site/SITES_DATA_KEY`).
+- **Cloud Claude sessions do not have the key by default** (removed from the cloud environment on Nov 10 2026: one
+  key decrypts every project's raw history, and most sessions only need the fake data, §8.1). A session without it
+  works on the fake data and on the plaintext outputs already in the repo (§4.4); `restore` and `./setup`'s state
+  restore will say the key is missing, which is expected, not a fault. When a task needs the real history (a restore
+  drill, a parser checked against real exports, an analysis over the raw store), ask Juan: he starts a session in an
+  environment that has `SITES_DATA_KEY` as an environment variable for that task only.
 - Jobs encrypt with the public key, so the Mac never needs the private key to save. It is needed only to restore.
 - Raw data is never committed unencrypted.
 - v1 per-project keys (`STATE_AGE_KEY`) are still read: the first `save` on a machine that has the old key
