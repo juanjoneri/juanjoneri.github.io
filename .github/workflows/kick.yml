@@ -1,0 +1,12 @@
+# Pushed by the hub's push.sh with every site/<slug> branch: ask the hub to deploy master. Not part of the page.
+name: kick
+on: push
+permissions:
+  actions: write
+jobs:
+  kick:
+    runs-on: ubuntu-latest
+    steps:
+      - run: gh workflow run deploy.yml --repo "$GITHUB_REPOSITORY" --ref master
+        env:
+          GH_TOKEN: ${{ github.token }}
